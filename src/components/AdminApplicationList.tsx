@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -18,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Loader2, Trash2 } from "lucide-react";
 
 interface ParkingType {
   id: string;
@@ -47,6 +48,8 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -210,6 +213,67 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) {
+      toast({
+        title: "선택된 항목 없음",
+        description: "삭제할 항목을 선택해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!confirm(`선택한 ${selectedIds.size}개의 신청을 삭제하시겠습니까?`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+
+    try {
+      const { error } = await supabase
+        .from("parking_applications")
+        .delete()
+        .in("id", Array.from(selectedIds));
+
+      if (error) throw error;
+
+      toast({
+        title: "일괄 삭제 완료",
+        description: `${selectedIds.size}개의 신청이 삭제되었습니다`,
+      });
+
+      setSelectedIds(new Set());
+      fetchData();
+    } catch (error) {
+      console.error("Error bulk deleting applications:", error);
+      toast({
+        title: "일괄 삭제 실패",
+        description: "삭제 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(applications.map(app => app.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSelectedIds = new Set(selectedIds);
+    if (checked) {
+      newSelectedIds.add(id);
+    } else {
+      newSelectedIds.delete(id);
+    }
+    setSelectedIds(newSelectedIds);
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
@@ -235,6 +299,33 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
 
   return (
     <div className="space-y-4">
+      {/* Bulk Delete Button */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+          <span className="text-sm font-medium">
+            {selectedIds.size}개 선택됨
+          </span>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleBulkDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                삭제 중...
+              </>
+            ) : (
+              <>
+                <Trash2 className="mr-2 h-4 w-4" />
+                선택 항목 삭제
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+
       {/* Mobile View - Cards */}
       <div className="md:hidden space-y-3">
         {applications.length === 0 ? (
@@ -244,9 +335,15 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
         ) : (
           applications.map((app) => (
             <div key={app.id} className="border rounded-lg p-4 space-y-3">
-              {/* 첫째 줄: 차량번호, 상태 */}
-              <div className="flex items-center justify-between">
-                <span className="font-mono font-semibold">{app.car_number}</span>
+              {/* 첫째 줄: 체크박스, 차량번호, 상태 */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={selectedIds.has(app.id)}
+                    onCheckedChange={(checked) => handleSelectOne(app.id, checked as boolean)}
+                  />
+                  <span className="font-mono font-semibold">{app.car_number}</span>
+                </div>
                 {getStatusBadge(app.status)}
               </div>
               
@@ -334,6 +431,12 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={applications.length > 0 && selectedIds.size === applications.length}
+                  onCheckedChange={handleSelectAll}
+                />
+              </TableHead>
               <TableHead>차량번호</TableHead>
               <TableHead>상태</TableHead>
               <TableHead>주차권</TableHead>
@@ -344,13 +447,19 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
           <TableBody>
             {applications.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   등록된 신청이 없습니다
                 </TableCell>
               </TableRow>
             ) : (
               applications.map((app) => (
                 <TableRow key={app.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(app.id)}
+                      onCheckedChange={(checked) => handleSelectOne(app.id, checked as boolean)}
+                    />
+                  </TableCell>
                   <TableCell className="font-mono">{app.car_number}</TableCell>
                   <TableCell>{getStatusBadge(app.status)}</TableCell>
                   <TableCell>
