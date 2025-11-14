@@ -113,22 +113,22 @@ const Index = () => {
     switch (status) {
       case "approved":
         return (
-          <Badge className="bg-success text-success-foreground text-base py-1">
-            <CheckCircle2 className="mr-1 h-5 w-5" />
+          <Badge className="bg-success text-success-foreground">
+            <CheckCircle2 className="mr-1 h-4 w-4" />
             승인됨
           </Badge>
         );
       case "pending":
         return (
-          <Badge variant="secondary" className="text-base py-1">
-            <Clock className="mr-1 h-5 w-5" />
+          <Badge variant="secondary">
+            <Clock className="mr-1 h-4 w-4" />
             대기중
           </Badge>
         );
       case "rejected":
         return (
-          <Badge variant="destructive" className="text-base py-1">
-            <XCircle className="mr-1 h-5 w-5" />
+          <Badge variant="destructive">
+            <XCircle className="mr-1 h-4 w-4" />
             거부됨
           </Badge>
         );
@@ -149,15 +149,15 @@ const Index = () => {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-primary leading-tight">
+          <h1 className="text-3xl font-bold text-primary leading-tight">
             M&C Communications
           </h1>
-          <h2 className="text-3xl md:text-4xl font-bold text-primary mt-2">
+          <h2 className="text-2xl font-bold text-primary mt-2">
             주차 등록 시스템
           </h2>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <Input
             placeholder="차량번호 (예: 123가4567)"
             value={applyCarNumber}
@@ -168,7 +168,7 @@ const Index = () => {
           <Button
             onClick={handleApply}
             disabled={loading}
-            className="w-full h-14 text-lg"
+            className="w-full"
           >
             주차등록 신청
           </Button>
@@ -178,30 +178,30 @@ const Index = () => {
             value={checkCarNumber}
             onChange={(e) => setCheckCarNumber(e.target.value.replace(/\D/g, ""))}
             maxLength={4}
-            className="h-20 text-2xl text-center"
+            className="text-center"
           />
           <Button
             onClick={handleCheck}
             disabled={loading}
-            className="w-full h-14 text-lg bg-primary hover:bg-primary/90"
+            className="w-full bg-primary hover:bg-primary/90"
           >
             주차등록 조회
           </Button>
 
           {checkResult && (
-            <div className="mt-6 p-6 bg-card border rounded-lg space-y-3">
+            <div className="mt-4 p-4 bg-card border rounded-lg space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-base text-muted-foreground">상태</span>
+                <span className="text-sm text-muted-foreground">상태</span>
                 {getStatusBadge(checkResult.status)}
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-base text-muted-foreground">차량번호</span>
-                <span className="font-semibold text-lg">{checkResult.car_number}</span>
+                <span className="text-sm text-muted-foreground">차량번호</span>
+                <span className="font-semibold">{checkResult.car_number}</span>
               </div>
               {checkResult.parking_types && (
                 <div className="flex justify-between items-center">
-                  <span className="text-base text-muted-foreground">주차권</span>
-                  <span className="font-semibold text-lg">
+                  <span className="text-sm text-muted-foreground">주차권</span>
+                  <span className="font-semibold">
                     {checkResult.parking_types.name}
                   </span>
                 </div>
