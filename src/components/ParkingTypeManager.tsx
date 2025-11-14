@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, Trash2, Plus } from "lucide-react";
+import { Loader2, Trash2, Plus, GripVertical } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,16 +20,86 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ParkingType {
   id: string;
   name: string;
   hours: number;
   created_at: string;
+  sort_order: number;
 }
 
 interface ParkingTypeManagerProps {
   projectId: string;
+}
+
+interface SortableRowProps {
+  type: ParkingType;
+  onDelete: (id: string) => void;
+}
+
+function SortableRow({ type, onDelete }: SortableRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: type.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <div className="flex items-center gap-2">
+          <button
+            className="cursor-grab active:cursor-grabbing touch-none"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </button>
+          <span>{type.name}</span>
+        </div>
+      </TableCell>
+      <TableCell>{type.hours}시간</TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {new Date(type.created_at).toLocaleDateString("ko-KR")}
+      </TableCell>
+      <TableCell>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onDelete(type.id)}
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
@@ -39,6 +109,13 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
   const [newName, setNewName] = useState("");
   const [newHours, setNewHours] = useState("");
   const { toast } = useToast();
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (projectId) {
@@ -52,48 +129,11 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
         .from("parking_types")
         .select("*")
         .eq("project_id", projectId)
-        .order("hours", { ascending: true });
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       
-      const existingTypes = data || [];
-      setParkingTypes(existingTypes);
-
-      // 기본 주차권 타입이 없으면 자동 생성
-      const defaultTypes = [
-        { name: "번호없음", hours: 0 },
-        { name: "거부", hours: 0 }
-      ];
-
-      const missingTypes = defaultTypes.filter(
-        defaultType => !existingTypes.some(existing => existing.name === defaultType.name)
-      );
-
-      if (missingTypes.length > 0) {
-        const { error: insertError } = await supabase
-          .from("parking_types")
-          .insert(
-            missingTypes.map(type => ({
-              ...type,
-              project_id: projectId
-            }))
-          );
-
-        if (insertError) {
-          console.error("Error creating default parking types:", insertError);
-        } else {
-          // 기본 주차권이 추가되었으면 다시 불러오기
-          const { data: updatedData } = await supabase
-            .from("parking_types")
-            .select("*")
-            .eq("project_id", projectId)
-            .order("hours", { ascending: true });
-          
-          if (updatedData) {
-            setParkingTypes(updatedData);
-          }
-        }
-      }
+      setParkingTypes(data || []);
     } catch (error) {
       console.error("Error fetching parking types:", error);
       toast({
@@ -129,10 +169,15 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
     }
 
     try {
+      const maxOrder = parkingTypes.length > 0 
+        ? Math.max(...parkingTypes.map(t => t.sort_order)) 
+        : 0;
+
       const { error } = await supabase.from("parking_types").insert({
         name: newName.trim(),
         hours: parseInt(newHours),
         project_id: projectId,
+        sort_order: maxOrder + 1,
       });
 
       if (error) throw error;
@@ -179,9 +224,50 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
       console.error("Error deleting parking type:", error);
       toast({
         title: "삭제 실패",
-        description: "주차권 삭제 중 오류가 발생했습니다",
+        description: "주차권 삭제 중 오류가 발생했습니다. 이 주차권을 사용하는 신청이 있는지 확인해주세요.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = parkingTypes.findIndex((type) => type.id === active.id);
+    const newIndex = parkingTypes.findIndex((type) => type.id === over.id);
+
+    const newOrder = arrayMove(parkingTypes, oldIndex, newIndex);
+    setParkingTypes(newOrder);
+
+    try {
+      const updates = newOrder.map((type, index) => ({
+        id: type.id,
+        sort_order: index + 1,
+      }));
+
+      for (const update of updates) {
+        await supabase
+          .from("parking_types")
+          .update({ sort_order: update.sort_order })
+          .eq("id", update.id);
+      }
+
+      toast({
+        title: "순서 변경 완료",
+        description: "주차권 순서가 저장되었습니다",
+      });
+    } catch (error) {
+      console.error("Error updating order:", error);
+      toast({
+        title: "순서 변경 실패",
+        description: "순서 변경 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+      fetchParkingTypes();
     }
   };
 
@@ -213,7 +299,7 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
                 <Label htmlFor="name">주차권 이름</Label>
                 <Input
                   id="name"
-                  placeholder="예: 5시간권"
+                  placeholder="예: 5시간"
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   required
@@ -224,7 +310,7 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
                 <Input
                   id="hours"
                   type="number"
-                  min="1"
+                  min="0"
                   placeholder="예: 5"
                   value={newHours}
                   onChange={(e) => setNewHours(e.target.value)}
@@ -257,24 +343,24 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
                 </TableCell>
               </TableRow>
             ) : (
-              parkingTypes.map((type) => (
-                <TableRow key={type.id}>
-                  <TableCell className="font-medium">{type.name}</TableCell>
-                  <TableCell>{type.hours}시간</TableCell>
-                  <TableCell>
-                    {new Date(type.created_at).toLocaleDateString("ko-KR")}
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDelete(type.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={parkingTypes.map(t => t.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {parkingTypes.map((type) => (
+                    <SortableRow
+                      key={type.id}
+                      type={type}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             )}
           </TableBody>
         </Table>

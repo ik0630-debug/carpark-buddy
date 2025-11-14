@@ -95,7 +95,7 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
           .from("parking_types")
           .select("*")
           .eq("project_id", projectId)
-          .order("hours", { ascending: true }),
+          .order("sort_order", { ascending: true }),
       ]);
 
       if (appsResult.error) throw appsResult.error;
