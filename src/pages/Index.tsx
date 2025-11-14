@@ -218,32 +218,9 @@ const Index = () => {
         description: "주차등록 신청이 완료되었습니다.",
       });
       
-      // 자동으로 조회하기
+      // 차량번호 뒤 4자리만 자동입력
       setCheckCarNumber(lastFour);
       setApplyCarNumber("");
-      
-      // 조회 실행
-      setTimeout(async () => {
-        const { data } = await supabase
-          .from("parking_applications")
-          .select(`
-            *,
-            parking_types (
-              name,
-              hours
-            )
-          `)
-          .eq("project_id", currentProjectId)
-          .eq("last_four", lastFour)
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        
-        if (data) {
-          setCheckResult(data);
-          setIsResultDialogOpen(true);
-        }
-      }, 500);
     } catch (error) {
       toast({
         title: "신청 실패",
