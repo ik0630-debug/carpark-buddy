@@ -1,15 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useNavigate } from "react-router-dom";
-import { Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 
 const Index = () => {
-  const navigate = useNavigate();
   const { toast } = useToast();
   const [applyCarNumber, setApplyCarNumber] = useState("");
   const [checkCarNumber, setCheckCarNumber] = useState("");
@@ -183,16 +180,6 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="flex justify-end mb-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/admin")}
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-        </div>
-
         <div className="text-center mb-8" style={{ marginBottom: '50px' }}>
           <div 
             className="font-bold text-primary leading-tight whitespace-pre-line"
