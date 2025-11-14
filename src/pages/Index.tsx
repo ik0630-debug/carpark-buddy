@@ -163,8 +163,8 @@ const Index = () => {
             value={applyCarNumber}
             onChange={(e) => setApplyCarNumber(e.target.value.replace(/\s/g, ""))}
             maxLength={8}
-            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal flex items-center justify-center w-full"
-            style={{ fontSize: '40px' }}
+            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal"
+            style={{ fontSize: '40px', display: 'flex', alignItems: 'center', paddingTop: '0', paddingBottom: '0' }}
           />
           <Button
             onClick={handleApply}
@@ -179,8 +179,8 @@ const Index = () => {
             value={checkCarNumber}
             onChange={(e) => setCheckCarNumber(e.target.value.replace(/\D/g, ""))}
             maxLength={4}
-            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal flex items-center justify-center w-full"
-            style={{ fontSize: '40px', marginTop: '50px' }}
+            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal"
+            style={{ fontSize: '40px', marginTop: '50px', display: 'flex', alignItems: 'center', paddingTop: '0', paddingBottom: '0' }}
           />
           <Button
             onClick={handleCheck}
