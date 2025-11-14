@@ -61,7 +61,7 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
 
       // 기본 주차권 타입이 없으면 자동 생성
       const defaultTypes = [
-        { name: "차량번호 없음", hours: 0 },
+        { name: "번호없음", hours: 0 },
         { name: "거부", hours: 0 }
       ];
 

@@ -200,11 +200,27 @@ export const ParkingStatusCheck = ({ projectId }: ParkingStatusCheckProps) => {
           </div>
 
           {application.parking_types && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">주차권</span>
-              <span className="font-semibold">
-                {application.parking_types.name} ({application.parking_types.hours}시간)
-              </span>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">주차권</span>
+                <span className="font-semibold">
+                  {application.parking_types.name} ({application.parking_types.hours}시간)
+                </span>
+              </div>
+              {application.parking_types.name === "번호없음" && (
+                <div className="p-3 bg-muted rounded-md">
+                  <p className="text-sm text-center font-medium">
+                    차량 번호가 없습니다.
+                  </p>
+                </div>
+              )}
+              {application.parking_types.name === "거부" && (
+                <div className="p-3 bg-destructive/10 rounded-md">
+                  <p className="text-sm text-center font-medium text-destructive">
+                    등록 대상 차량이 아닙니다.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

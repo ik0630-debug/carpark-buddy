@@ -128,12 +128,19 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
     setProcessingId(id);
 
     try {
+      // 선택한 주차권 정보 가져오기
+      const selectedType = parkingTypes.find(type => type.id === parkingTypeId);
+      
+      // "번호없음"이나 "거부"인 경우 상태를 pending으로 유지
+      const shouldKeepPending = selectedType && 
+        (selectedType.name === "번호없음" || selectedType.name === "거부");
+
       const { error } = await supabase
         .from("parking_applications")
         .update({
-          status: "approved",
+          status: shouldKeepPending ? "pending" : "approved",
           parking_type_id: parkingTypeId,
-          approved_at: new Date().toISOString(),
+          approved_at: shouldKeepPending ? null : new Date().toISOString(),
         })
         .eq("id", id);
 
