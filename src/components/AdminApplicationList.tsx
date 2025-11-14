@@ -131,25 +131,37 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
       // 선택한 주차권 정보 가져오기
       const selectedType = parkingTypes.find(type => type.id === parkingTypeId);
       
-      // "번호없음"이나 "거부"인 경우 상태를 pending으로 유지
-      const shouldKeepPending = selectedType && 
+      // "번호없음"이나 "거부"인 경우 상태를 needs_review로 설정
+      const isSpecialType = selectedType && 
         (selectedType.name === "번호없음" || selectedType.name === "거부");
 
       const { error } = await supabase
         .from("parking_applications")
         .update({
-          status: shouldKeepPending ? "pending" : "approved",
+          status: isSpecialType ? "needs_review" : "approved",
           parking_type_id: parkingTypeId,
-          approved_at: shouldKeepPending ? null : new Date().toISOString(),
+          approved_at: isSpecialType ? null : new Date().toISOString(),
         })
         .eq("id", id);
 
       if (error) throw error;
 
-      toast({
-        title: "배정 완료",
-        description: "주차권이 배정되었습니다",
-      });
+      // 특수 타입일 때 메시지 표시
+      if (isSpecialType) {
+        const message = selectedType.name === "번호없음" 
+          ? "차량 번호가 없습니다." 
+          : "등록 대상 차량이 아닙니다.";
+        toast({
+          title: "확인 필요",
+          description: message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "배정 완료",
+          description: "주차권이 배정되었습니다",
+        });
+      }
 
       setEditingId(null);
       fetchData();
@@ -204,6 +216,8 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
         return <Badge className="bg-success">적용완료</Badge>;
       case "pending":
         return <Badge variant="secondary">대기중</Badge>;
+      case "needs_review":
+        return <Badge variant="destructive">확인필요</Badge>;
       case "rejected":
         return <Badge variant="destructive">거부됨</Badge>;
       default:
@@ -245,7 +259,7 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
                   <TableCell className="font-mono">{app.car_number}</TableCell>
                   <TableCell>{getStatusBadge(app.status)}</TableCell>
                   <TableCell>
-                    {app.status === "pending" || editingId === app.id ? (
+                    {app.status === "pending" || app.status === "needs_review" || editingId === app.id ? (
                       <div className="flex items-center gap-2">
                         <Select
                           onValueChange={(value) =>
