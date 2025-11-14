@@ -7,8 +7,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Settings } from "lucide-react";
+import { ProjectManager } from "./ProjectManager";
 
 interface Project {
   id: string;
@@ -23,6 +33,7 @@ interface ProjectSelectorProps {
 
 export const ProjectSelector = ({ value, onChange }: ProjectSelectorProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [open, setOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,6 +70,11 @@ export const ProjectSelector = ({ value, onChange }: ProjectSelectorProps) => {
     }
   };
 
+  // 프로젝트 관리 Dialog에서 변경이 있을 때 목록 새로고침
+  const handleProjectsChange = () => {
+    fetchProjects();
+  };
+
   const handleValueChange = (projectId: string) => {
     localStorage.setItem("currentProjectId", projectId);
     onChange(projectId);
@@ -77,7 +93,23 @@ export const ProjectSelector = ({ value, onChange }: ProjectSelectorProps) => {
 
   return (
     <div className="space-y-2">
-      <Label>프로젝트 선택</Label>
+      <div className="flex items-center justify-between">
+        <Label>프로젝트 선택</Label>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              프로젝트 관리
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>프로젝트 관리</DialogTitle>
+            </DialogHeader>
+            <ProjectManager onProjectsChange={handleProjectsChange} />
+          </DialogContent>
+        </Dialog>
+      </div>
       <Select value={value || undefined} onValueChange={handleValueChange}>
         <SelectTrigger>
           <SelectValue placeholder="프로젝트를 선택하세요" />
