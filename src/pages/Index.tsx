@@ -16,8 +16,6 @@ const Index = () => {
   
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [applyCarNumber, setApplyCarNumber] = useState("");
-  const [applyName, setApplyName] = useState("");
-  const [applyPhone, setApplyPhone] = useState("");
   const [checkCarNumber, setCheckCarNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkResult, setCheckResult] = useState<any>(null);
@@ -192,15 +190,6 @@ const Index = () => {
       return;
     }
 
-    if (!applyName.trim() || !applyPhone.trim()) {
-      toast({
-        title: "필수 정보 누락",
-        description: "이름과 연락처를 모두 입력해주세요",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
     try {
       const lastFour = applyCarNumber.slice(-4);
@@ -209,8 +198,6 @@ const Index = () => {
         .insert({
           car_number: applyCarNumber,
           last_four: lastFour,
-          applicant_name: applyName,
-          applicant_phone: applyPhone,
           project_id: currentProjectId,
         });
 
@@ -221,8 +208,6 @@ const Index = () => {
         description: "주차등록 신청이 완료되었습니다. 뒤 4자리로 상태를 확인하실 수 있습니다.",
       });
       setApplyCarNumber("");
-      setApplyName("");
-      setApplyPhone("");
     } catch (error) {
       toast({
         title: "신청 실패",
@@ -345,28 +330,6 @@ const Index = () => {
 
         <div className="space-y-3">
           <Input
-            placeholder="이름"
-            value={applyName}
-            onChange={(e) => setApplyName(e.target.value)}
-            className="h-16 text-center border-2 border-black font-bold placeholder:text-xl placeholder:font-normal"
-            style={{ 
-              fontSize: '28px', 
-              lineHeight: '64px',
-              padding: '0 1rem'
-            }}
-          />
-          <Input
-            placeholder="연락처 (010-1234-5678)"
-            value={applyPhone}
-            onChange={(e) => setApplyPhone(e.target.value)}
-            className="h-16 text-center border-2 border-black font-bold placeholder:text-xl placeholder:font-normal"
-            style={{ 
-              fontSize: '28px', 
-              lineHeight: '64px',
-              padding: '0 1rem'
-            }}
-          />
-          <Input
             placeholder="차량번호 (예: 123가4567)"
             value={applyCarNumber}
             onChange={(e) => setApplyCarNumber(e.target.value.replace(/\s/g, ""))}
@@ -418,7 +381,7 @@ const Index = () => {
                 조회 중...
               </>
             ) : (
-              "신청 상태 확인"
+              "주차 등록 조회"
             )}
           </Button>
         </div>
