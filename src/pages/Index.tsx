@@ -157,19 +157,19 @@ const Index = () => {
           </h2>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-3 flex flex-col items-center">
           <Input
             placeholder="차량번호 (예: 123가4567)"
             value={applyCarNumber}
             onChange={(e) => setApplyCarNumber(e.target.value.replace(/\s/g, ""))}
             maxLength={8}
-            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal flex items-center justify-center"
+            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal flex items-center justify-center w-4/5"
             style={{ fontSize: '40px' }}
           />
           <Button
             onClick={handleApply}
             disabled={loading}
-            className="w-full"
+            className="w-4/5"
           >
             주차등록 신청
           </Button>
@@ -179,13 +179,13 @@ const Index = () => {
             value={checkCarNumber}
             onChange={(e) => setCheckCarNumber(e.target.value.replace(/\D/g, ""))}
             maxLength={4}
-            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal flex items-center justify-center"
+            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal flex items-center justify-center w-4/5"
             style={{ fontSize: '40px', marginTop: '50px' }}
           />
           <Button
             onClick={handleCheck}
             disabled={loading}
-            className="w-full bg-primary hover:bg-primary/90"
+            className="w-4/5 bg-primary hover:bg-primary/90"
           >
             주차등록 조회
           </Button>
