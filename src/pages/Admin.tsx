@@ -138,8 +138,11 @@ const Admin = () => {
         </div>
 
         {role === "master" && (
-          <Card className="p-3 sm:p-6 mb-4 sm:mb-6">
-            <ProjectSelector value={currentProjectId} onChange={setCurrentProjectId} />
+          <Card className="p-4 sm:p-6 mb-4 sm:mb-6">
+            <div className="space-y-3">
+              <h2 className="text-base sm:text-lg font-semibold">프로젝트 선택</h2>
+              <ProjectSelector value={currentProjectId} onChange={setCurrentProjectId} />
+            </div>
           </Card>
         )}
 
