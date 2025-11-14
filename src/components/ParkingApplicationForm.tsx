@@ -6,7 +6,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-export const ParkingApplicationForm = () => {
+interface ParkingApplicationFormProps {
+  projectId: string;
+}
+
+export const ParkingApplicationForm = ({ projectId }: ParkingApplicationFormProps) => {
   const [carNumber, setCarNumber] = useState("");
   const [applicantName, setApplicantName] = useState("");
   const [applicantPhone, setApplicantPhone] = useState("");
@@ -52,6 +56,7 @@ export const ParkingApplicationForm = () => {
           last_four: lastFour,
           applicant_name: applicantName,
           applicant_phone: applicantPhone,
+          project_id: projectId,
         });
 
       if (error) throw error;

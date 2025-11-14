@@ -21,7 +21,11 @@ interface Application {
   } | null;
 }
 
-export const ParkingStatusCheck = () => {
+interface ParkingStatusCheckProps {
+  projectId: string;
+}
+
+export const ParkingStatusCheck = ({ projectId }: ParkingStatusCheckProps) => {
   const [lastFour, setLastFour] = useState("");
   const [loading, setLoading] = useState(false);
   const [application, setApplication] = useState<Application | null>(null);
@@ -51,6 +55,7 @@ export const ParkingStatusCheck = () => {
             hours
           )
         `)
+        .eq("project_id", projectId)
         .eq("last_four", lastFour)
         .order("created_at", { ascending: false })
         .limit(1)

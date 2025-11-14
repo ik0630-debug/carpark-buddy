@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AdminApplicationList } from "@/components/AdminApplicationList";
 import { ParkingTypeManager } from "@/components/ParkingTypeManager";
 import { PageSettingsManager } from "@/components/PageSettingsManager";
+import { ProjectManager } from "@/components/ProjectManager";
+import { ProjectSelector } from "@/components/ProjectSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 
 const Admin = () => {
   const navigate = useNavigate();
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
 
   return (
     <div className="min-h-screen bg-background">
@@ -31,24 +34,34 @@ const Admin = () => {
           </p>
         </div>
 
-        <Card className="p-6">
-          <Tabs defaultValue="applications" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
-              <TabsTrigger value="applications">신청 관리</TabsTrigger>
-              <TabsTrigger value="parking-types">주차권 관리</TabsTrigger>
-              <TabsTrigger value="settings">페이지 설정</TabsTrigger>
-            </TabsList>
-            <TabsContent value="applications">
-              <AdminApplicationList />
-            </TabsContent>
-            <TabsContent value="parking-types">
-              <ParkingTypeManager />
-            </TabsContent>
-            <TabsContent value="settings">
-              <PageSettingsManager />
-            </TabsContent>
-          </Tabs>
+        <Card className="p-6 mb-6">
+          <ProjectSelector value={currentProjectId} onChange={setCurrentProjectId} />
         </Card>
+
+        {currentProjectId && (
+          <Card className="p-6">
+            <Tabs defaultValue="applications" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
+                <TabsTrigger value="applications">신청 관리</TabsTrigger>
+                <TabsTrigger value="parking-types">주차권 관리</TabsTrigger>
+                <TabsTrigger value="settings">페이지 설정</TabsTrigger>
+                <TabsTrigger value="projects">프로젝트 관리</TabsTrigger>
+              </TabsList>
+              <TabsContent value="applications">
+                <AdminApplicationList projectId={currentProjectId} />
+              </TabsContent>
+              <TabsContent value="parking-types">
+                <ParkingTypeManager projectId={currentProjectId} />
+              </TabsContent>
+              <TabsContent value="settings">
+                <PageSettingsManager projectId={currentProjectId} />
+              </TabsContent>
+              <TabsContent value="projects">
+                <ProjectManager />
+              </TabsContent>
+            </Tabs>
+          </Card>
+        )}
       </div>
     </div>
   );

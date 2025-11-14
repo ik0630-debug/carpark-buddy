@@ -7,7 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 
-export const PageSettingsManager = () => {
+interface PageSettingsManagerProps {
+  projectId: string;
+}
+
+export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => {
   const [titleText, setTitleText] = useState("");
   const [fontSize, setFontSize] = useState("36");
   const [loading, setLoading] = useState(true);
@@ -15,14 +19,17 @@ export const PageSettingsManager = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
+    if (projectId) {
+      fetchSettings();
+    }
+  }, [projectId]);
 
   const fetchSettings = async () => {
     try {
       const { data, error } = await supabase
         .from("page_settings")
         .select("*")
+        .eq("project_id", projectId)
         .in("setting_key", ["title_text", "title_font_size"]);
 
       if (error) throw error;
@@ -54,6 +61,7 @@ export const PageSettingsManager = () => {
       const { error: titleError } = await supabase
         .from("page_settings")
         .update({ setting_value: titleText })
+        .eq("project_id", projectId)
         .eq("setting_key", "title_text");
 
       if (titleError) throw titleError;
@@ -62,6 +70,7 @@ export const PageSettingsManager = () => {
       const { error: fontError } = await supabase
         .from("page_settings")
         .update({ setting_value: fontSize })
+        .eq("project_id", projectId)
         .eq("setting_key", "title_font_size");
 
       if (fontError) throw fontError;
