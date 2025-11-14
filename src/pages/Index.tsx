@@ -205,9 +205,36 @@ const Index = () => {
 
       toast({
         title: "신청 완료",
-        description: "주차등록 신청이 완료되었습니다. 뒤 4자리로 상태를 확인하실 수 있습니다.",
+        description: "주차등록 신청이 완료되었습니다.",
       });
+      
+      // 자동으로 조회하기
+      setCheckCarNumber(lastFour);
       setApplyCarNumber("");
+      
+      // 조회 실행
+      setTimeout(async () => {
+        const { data } = await supabase
+          .from("parking_applications")
+          .select(`
+            *,
+            parking_types (
+              name,
+              hours
+            )
+          `)
+          .eq("project_id", currentProjectId)
+          .eq("last_four", lastFour)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (data) {
+          setCheckResult(data);
+          // 조회 결과로 스크롤
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+      }, 500);
     } catch (error) {
       toast({
         title: "신청 실패",
