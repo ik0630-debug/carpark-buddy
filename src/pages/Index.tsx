@@ -344,7 +344,8 @@ const Index = () => {
           <Button
             onClick={handleApply}
             disabled={loading}
-            className="w-full h-14 text-xl"
+            className="w-full h-14"
+            style={{ fontSize: '16px' }}
           >
             {loading ? (
               <>
@@ -372,8 +373,8 @@ const Index = () => {
           <Button
             onClick={handleCheck}
             disabled={loading}
-            className="w-full h-14 text-xl"
-            variant="secondary"
+            className="w-full h-14"
+            style={{ fontSize: '16px' }}
           >
             {loading ? (
               <>
