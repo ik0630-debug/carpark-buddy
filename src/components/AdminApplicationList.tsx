@@ -46,6 +46,7 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
   const [parkingTypes, setParkingTypes] = useState<ParkingType[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -143,6 +144,7 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
         description: "주차권이 배정되었습니다",
       });
 
+      setEditingId(null);
       fetchData();
     } catch (error) {
       console.error("Error approving application:", error);
@@ -236,28 +238,50 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
                   <TableCell className="font-mono">{app.car_number}</TableCell>
                   <TableCell>{getStatusBadge(app.status)}</TableCell>
                   <TableCell>
-                    {app.status === "pending" ? (
-                      <Select
-                        onValueChange={(value) =>
-                          handleApprove(app.id, value)
-                        }
-                        disabled={processingId === app.id}
-                      >
-                        <SelectTrigger className="w-32">
-                          <SelectValue placeholder="선택" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {parkingTypes.map((type) => (
-                            <SelectItem key={type.id} value={type.id}>
-                              {type.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    {app.status === "pending" || editingId === app.id ? (
+                      <div className="flex items-center gap-2">
+                        <Select
+                          onValueChange={(value) =>
+                            handleApprove(app.id, value)
+                          }
+                          disabled={processingId === app.id}
+                          defaultValue={app.parking_type_id || undefined}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue placeholder="선택" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {parkingTypes.map((type) => (
+                              <SelectItem key={type.id} value={type.id}>
+                                {type.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {editingId === app.id && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingId(null)}
+                          >
+                            취소
+                          </Button>
+                        )}
+                      </div>
                     ) : app.parking_types ? (
-                      <span className="text-sm">
-                        {app.parking_types.name} ({app.parking_types.hours}시간)
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">
+                          {app.parking_types.name} ({app.parking_types.hours}시간)
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingId(app.id)}
+                          disabled={processingId === app.id}
+                        >
+                          수정
+                        </Button>
+                      </div>
                     ) : (
                       "-"
                     )}
