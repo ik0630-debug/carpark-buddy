@@ -123,7 +123,7 @@ const AdminSignup = () => {
               </Button>
             </Link>
           </div>
-          <CardTitle>마스터 계정 생성</CardTitle>
+          <CardTitle>마스터 계정 회원가입</CardTitle>
           <CardDescription>
             관리자 계정을 생성하여 시스템을 관리하세요
           </CardDescription>
