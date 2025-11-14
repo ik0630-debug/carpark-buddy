@@ -52,33 +52,35 @@ const Admin = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-7xl">
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center justify-between mb-4 gap-2">
             <Button
               variant="ghost"
               onClick={() => navigate("/")}
+              className="text-xs sm:text-sm px-2 sm:px-4"
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              참가자 페이지로 돌아가기
+              <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">참가자 페이지로 돌아가기</span>
+              <span className="sm:hidden">뒤로</span>
             </Button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2">
               <Sheet open={settingsOpen} onOpenChange={setSettingsOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <Settings className="h-4 w-4" />
+                  <Button variant="outline" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+                    <Settings className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent className="overflow-y-auto">
+                <SheetContent className="overflow-y-auto w-full sm:max-w-md">
                   <SheetHeader>
                     <SheetTitle>계정 설정</SheetTitle>
                   </SheetHeader>
                   <div className="mt-6">
                     <Tabs defaultValue="profile" className="w-full">
                       <TabsList className={`grid w-full mb-6 ${role === "master" ? "grid-cols-2" : "grid-cols-1"}`}>
-                        <TabsTrigger value="profile">내 정보</TabsTrigger>
+                        <TabsTrigger value="profile" className="text-sm">내 정보</TabsTrigger>
                         {role === "master" && (
-                          <TabsTrigger value="users">사용자 승인</TabsTrigger>
+                          <TabsTrigger value="users" className="text-sm">사용자 승인</TabsTrigger>
                         )}
                       </TabsList>
                       <TabsContent value="profile">
@@ -96,35 +98,43 @@ const Admin = () => {
               <Button
                 variant="outline"
                 onClick={handleSignOut}
+                className="text-xs sm:text-sm px-2 sm:px-4 h-8 sm:h-10"
               >
-                <LogOut className="mr-2 h-4 w-4" />
-                로그아웃
+                <LogOut className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">로그아웃</span>
+                <span className="xs:hidden">로그아웃</span>
               </Button>
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-foreground mb-2">
+          <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-2">
             주차등록 관리자 {role === "user" && "(현장)"}
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             주차 신청을 관리하고 주차권 종류를 설정합니다
           </p>
         </div>
 
         {role === "master" && (
-          <Card className="p-6 mb-6">
+          <Card className="p-3 sm:p-6 mb-4 sm:mb-6">
             <ProjectSelector value={currentProjectId} onChange={setCurrentProjectId} />
           </Card>
         )}
 
         {currentProjectId && (
-          <Card className="p-6">
+          <Card className="p-3 sm:p-6">
             <Tabs defaultValue="applications" className="w-full">
-              <TabsList className={`grid w-full mb-6 ${role === "master" ? "grid-cols-3" : "grid-cols-1"}`}>
-                <TabsTrigger value="applications">신청 관리</TabsTrigger>
+              <TabsList className={`w-full mb-4 sm:mb-6 ${role === "master" ? "grid grid-cols-1 sm:grid-cols-3 gap-1" : "grid grid-cols-1"}`}>
+                <TabsTrigger value="applications" className="text-sm sm:text-base py-2">
+                  신청 관리
+                </TabsTrigger>
                 {role === "master" && (
                   <>
-                    <TabsTrigger value="parking-types">주차권 관리</TabsTrigger>
-                    <TabsTrigger value="settings">페이지 설정</TabsTrigger>
+                    <TabsTrigger value="parking-types" className="text-sm sm:text-base py-2">
+                      주차권 관리
+                    </TabsTrigger>
+                    <TabsTrigger value="settings" className="text-sm sm:text-base py-2">
+                      페이지 설정
+                    </TabsTrigger>
                   </>
                 )}
               </TabsList>
