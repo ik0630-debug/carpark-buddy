@@ -39,7 +39,11 @@ interface Application {
   parking_types: ParkingType | null;
 }
 
-export const AdminApplicationList = () => {
+interface AdminApplicationListProps {
+  projectId: string;
+}
+
+export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) => {
   const [applications, setApplications] = useState<Application[]>([]);
   const [parkingTypes, setParkingTypes] = useState<ParkingType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,29 +51,31 @@ export const AdminApplicationList = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchData();
+    if (projectId) {
+      fetchData();
 
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('admin-applications')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'parking_applications'
-        },
-        (payload) => {
-          console.log('Realtime update:', payload);
-          fetchData(); // Refresh data on any change
-        }
-      )
-      .subscribe();
+      // Set up realtime subscription
+      const channel = supabase
+        .channel('admin-applications')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'parking_applications'
+          },
+          (payload) => {
+            console.log('Realtime update:', payload);
+            fetchData(); // Refresh data on any change
+          }
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [projectId]);
 
   const fetchData = async () => {
     try {
@@ -84,10 +90,12 @@ export const AdminApplicationList = () => {
               hours
             )
           `)
+          .eq("project_id", projectId)
           .order("created_at", { ascending: false }),
         supabase
           .from("parking_types")
           .select("*")
+          .eq("project_id", projectId)
           .order("hours", { ascending: true }),
       ]);
 
