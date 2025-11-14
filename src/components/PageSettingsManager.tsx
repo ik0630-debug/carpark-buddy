@@ -79,57 +79,38 @@ export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => 
     setSaving(true);
 
     try {
-      // Upsert title text
-      const { error: titleError } = await supabase
-        .from("page_settings")
-        .upsert({ 
+      // Prepare all settings to upsert
+      const settingsToUpsert = [
+        {
           project_id: projectId,
           setting_key: "title_text",
-          setting_value: titleText 
-        }, {
-          onConflict: "project_id,setting_key"
-        });
-
-      if (titleError) throw titleError;
-
-      // Upsert font size
-      const { error: fontError } = await supabase
-        .from("page_settings")
-        .upsert({ 
+          setting_value: titleText
+        },
+        {
           project_id: projectId,
           setting_key: "title_font_size",
-          setting_value: fontSize 
-        }, {
-          onConflict: "project_id,setting_key"
-        });
-
-      if (fontError) throw fontError;
-
-      // Upsert custom fields enabled
-      const { error: customFieldsEnabledError } = await supabase
-        .from("page_settings")
-        .upsert({ 
+          setting_value: fontSize
+        },
+        {
           project_id: projectId,
           setting_key: "custom_fields_enabled",
-          setting_value: customFieldsEnabled.toString() 
-        }, {
-          onConflict: "project_id,setting_key"
-        });
-
-      if (customFieldsEnabledError) throw customFieldsEnabledError;
-
-      // Upsert custom fields config
-      const { error: customFieldsConfigError } = await supabase
-        .from("page_settings")
-        .upsert({ 
+          setting_value: customFieldsEnabled.toString()
+        },
+        {
           project_id: projectId,
           setting_key: "custom_fields_config",
-          setting_value: JSON.stringify(customFields) 
-        }, {
+          setting_value: JSON.stringify(customFields)
+        }
+      ];
+
+      // Upsert all settings at once
+      const { error } = await supabase
+        .from("page_settings")
+        .upsert(settingsToUpsert, {
           onConflict: "project_id,setting_key"
         });
 
-      if (customFieldsConfigError) throw customFieldsConfigError;
+      if (error) throw error;
 
       toast({
         title: "저장 완료",
