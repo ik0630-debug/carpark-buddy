@@ -116,8 +116,13 @@ const ProjectSelection = () => {
           </CardHeader>
           <CardContent>
             {projects.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                등록된 프로젝트가 없습니다
+              <div className="text-center py-8">
+                <p className="text-muted-foreground mb-4">
+                  등록된 프로젝트가 없습니다
+                </p>
+                <Button onClick={() => navigate("/admin")}>
+                  프로젝트 생성하기
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
