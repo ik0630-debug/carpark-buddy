@@ -138,7 +138,7 @@ export const ParkingStatusCheck = ({ projectId }: ParkingStatusCheckProps) => {
         return (
           <Badge className="bg-success text-success-foreground">
             <CheckCircle2 className="mr-1 h-4 w-4" />
-            승인됨
+            적용완료
           </Badge>
         );
       case "pending":
