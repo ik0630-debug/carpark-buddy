@@ -14,18 +14,40 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { supabase } from "@/integrations/supabase/client";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { role, projectId, loading, signOut } = useAuth();
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [projectSlug, setProjectSlug] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !role) {
       navigate("/admin/login");
     }
   }, [role, loading, navigate]);
+
+  useEffect(() => {
+    // localStorage에서 프로젝트 ID 가져와서 slug 조회
+    const fetchProjectSlug = async () => {
+      const savedProjectId = localStorage.getItem("currentProjectId");
+      if (savedProjectId) {
+        const { data } = await supabase
+          .from("projects")
+          .select("slug")
+          .eq("id", savedProjectId)
+          .maybeSingle();
+        
+        if (data?.slug) {
+          setProjectSlug(data.slug);
+        }
+      }
+    };
+
+    fetchProjectSlug();
+  }, []);
 
   useEffect(() => {
     // 유저 권한인 경우 로그인한 프로젝트로 자동 설정
@@ -58,7 +80,7 @@ const Admin = () => {
           <div className="flex items-center justify-between mb-4 gap-2">
             <Button
               variant="ghost"
-              onClick={() => navigate("/")}
+              onClick={() => projectSlug ? navigate(`/${projectSlug}`) : navigate(-1)}
               className="text-xs sm:text-sm px-2 sm:px-4"
             >
               <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
