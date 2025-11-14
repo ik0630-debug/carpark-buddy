@@ -6,10 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 const Index = () => {
   const { toast } = useToast();
+  const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const projectIdFromUrl = searchParams.get("project");
   
@@ -24,17 +25,39 @@ const Index = () => {
   const [fontSize, setFontSize] = useState("36");
 
   useEffect(() => {
-    // URL에서 프로젝트 ID를 가져오거나, 첫 번째 프로젝트를 자동 선택
+    // URL에서 프로젝트를 가져오는 로직
     const initializeProject = async () => {
-      if (projectIdFromUrl) {
+      // 1. slug가 있으면 slug로 프로젝트 조회
+      if (slug) {
+        const { data } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        
+        if (data) {
+          setCurrentProjectId(data.id);
+          localStorage.setItem("currentProjectId", data.id);
+        } else {
+          toast({
+            title: "프로젝트를 찾을 수 없습니다",
+            description: "URL을 확인해주세요",
+            variant: "destructive",
+          });
+        }
+      }
+      // 2. project 파라미터가 있으면 ID로 조회
+      else if (projectIdFromUrl) {
         setCurrentProjectId(projectIdFromUrl);
         localStorage.setItem("currentProjectId", projectIdFromUrl);
-      } else {
+      }
+      // 3. 저장된 프로젝트 ID가 있으면 사용
+      else {
         const savedProjectId = localStorage.getItem("currentProjectId");
         if (savedProjectId) {
           setCurrentProjectId(savedProjectId);
         } else {
-          // 첫 번째 프로젝트를 자동 선택
+          // 4. 첫 번째 프로젝트를 자동 선택
           const { data } = await supabase
             .from("projects")
             .select("id")
@@ -51,7 +74,7 @@ const Index = () => {
     };
 
     initializeProject();
-  }, [projectIdFromUrl]);
+  }, [slug, projectIdFromUrl]);
 
   useEffect(() => {
     if (currentProjectId) {
