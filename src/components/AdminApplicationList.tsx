@@ -139,16 +139,16 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
       if (error) throw error;
 
       toast({
-        title: "승인 완료",
-        description: "주차등록이 승인되었습니다",
+        title: "배정 완료",
+        description: "주차권이 배정되었습니다",
       });
 
       fetchData();
     } catch (error) {
       console.error("Error approving application:", error);
       toast({
-        title: "승인 실패",
-        description: "승인 처리 중 오류가 발생했습니다",
+        title: "배정 실패",
+        description: "처리 중 오류가 발생했습니다",
         variant: "destructive",
       });
     } finally {
@@ -156,30 +156,32 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
     }
   };
 
-  const handleReject = async (id: string) => {
+  const handleDelete = async (id: string) => {
+    if (!confirm("정말 삭제하시겠습니까?")) {
+      return;
+    }
+
     setProcessingId(id);
 
     try {
       const { error } = await supabase
         .from("parking_applications")
-        .update({
-          status: "rejected",
-        })
+        .delete()
         .eq("id", id);
 
       if (error) throw error;
 
       toast({
-        title: "거부 완료",
-        description: "주차등록이 거부되었습니다",
+        title: "삭제 완료",
+        description: "신청이 삭제되었습니다",
       });
 
       fetchData();
     } catch (error) {
-      console.error("Error rejecting application:", error);
+      console.error("Error deleting application:", error);
       toast({
-        title: "거부 실패",
-        description: "거부 처리 중 오류가 발생했습니다",
+        title: "삭제 실패",
+        description: "삭제 중 오류가 발생했습니다",
         variant: "destructive",
       });
     } finally {
@@ -253,29 +255,35 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
                         </SelectContent>
                       </Select>
                     ) : app.parking_types ? (
-                      `${app.parking_types.name}`
+                      <span className="text-sm">
+                        {app.parking_types.name} ({app.parking_types.hours}시간)
+                      </span>
                     ) : (
                       "-"
                     )}
                   </TableCell>
-                  <TableCell>
-                    {new Date(app.created_at).toLocaleDateString("ko-KR")}
+                  <TableCell className="text-sm text-muted-foreground">
+                    {new Date(app.created_at).toLocaleString("ko-KR", {
+                      year: "numeric",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </TableCell>
                   <TableCell>
-                    {app.status === "pending" && (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleReject(app.id)}
-                        disabled={processingId === app.id}
-                      >
-                        {processingId === app.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <XCircle className="h-4 w-4" />
-                        )}
-                      </Button>
-                    )}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(app.id)}
+                      disabled={processingId === app.id}
+                    >
+                      {processingId === app.id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "삭제"
+                      )}
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
