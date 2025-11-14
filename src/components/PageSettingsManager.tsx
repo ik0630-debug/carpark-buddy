@@ -16,8 +16,9 @@ interface PageSettingsManagerProps {
 interface CustomField {
   id: string;
   label: string;
-  type: "text" | "number" | "tel" | "email";
+  type: "text" | "number" | "tel" | "email" | "select";
   required: boolean;
+  options?: string[];
 }
 
 export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => {
@@ -138,6 +139,7 @@ export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => 
         label: "",
         type: "text",
         required: false,
+        options: [],
       },
     ]);
   };
@@ -234,7 +236,7 @@ export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => 
                     <Select
                       value={field.type}
                       onValueChange={(value: any) =>
-                        updateCustomField(field.id, { type: value })
+                        updateCustomField(field.id, { type: value, options: value === "select" ? [] : undefined })
                       }
                     >
                       <SelectTrigger className="w-[140px]">
@@ -245,6 +247,7 @@ export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => 
                         <SelectItem value="number">숫자</SelectItem>
                         <SelectItem value="tel">전화번호</SelectItem>
                         <SelectItem value="email">이메일</SelectItem>
+                        <SelectItem value="select">선택(드롭다운)</SelectItem>
                       </SelectContent>
                     </Select>
                     <div className="flex items-center gap-2">
@@ -257,6 +260,46 @@ export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => 
                       <Label className="text-sm">필수</Label>
                     </div>
                   </div>
+                  
+                  {field.type === "select" && (
+                    <div className="space-y-2 pt-2 border-t">
+                      <Label className="text-sm">선택 옵션</Label>
+                      {(field.options || []).map((option, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            placeholder={`옵션 ${index + 1} (예: VIP, 스텝)`}
+                            value={option}
+                            onChange={(e) => {
+                              const newOptions = [...(field.options || [])];
+                              newOptions[index] = e.target.value;
+                              updateCustomField(field.id, { options: newOptions });
+                            }}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              const newOptions = (field.options || []).filter((_, i) => i !== index);
+                              updateCustomField(field.id, { options: newOptions });
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
+                      ))}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          updateCustomField(field.id, { options: [...(field.options || []), ""] });
+                        }}
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        옵션 추가
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 <Button
                   variant="ghost"
