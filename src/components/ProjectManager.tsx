@@ -243,7 +243,7 @@ export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) =
                 <Input
                   id="password"
                   type="password"
-                  placeholder="현장 관리자용 비밀번호"
+                  placeholder="mnc+프로젝트 주소로 설정해주세요.(ex. mncnetchal)"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
