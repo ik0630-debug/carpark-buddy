@@ -13,6 +13,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+
+interface CustomField {
+  id: string;
+  label: string;
+  type: "text" | "number" | "tel" | "email" | "select";
+  required: boolean;
+  options?: string[];
+}
 
 const Index = () => {
   const { toast } = useToast();
@@ -29,6 +39,9 @@ const Index = () => {
   const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
   const [errorDialogOpen, setErrorDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState({ title: "", description: "" });
+  const [customFieldsEnabled, setCustomFieldsEnabled] = useState(false);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
 
   useEffect(() => {
     // slug로 프로젝트 조회
@@ -141,14 +154,30 @@ const Index = () => {
         .from("page_settings")
         .select("*")
         .eq("project_id", currentProjectId)
-        .in("setting_key", ["title_text", "title_font_size"]);
+        .in("setting_key", ["title_text", "title_font_size", "custom_fields_enabled", "custom_fields_config"]);
 
       if (data) {
         const titleSetting = data.find((s) => s.setting_key === "title_text");
         const fontSizeSetting = data.find((s) => s.setting_key === "title_font_size");
+        const enabledSetting = data.find((s) => s.setting_key === "custom_fields_enabled");
+        const configSetting = data.find((s) => s.setting_key === "custom_fields_config");
 
         if (titleSetting) setTitleText(titleSetting.setting_value);
         if (fontSizeSetting) setFontSize(fontSizeSetting.setting_value);
+        if (enabledSetting) setCustomFieldsEnabled(enabledSetting.setting_value === "true");
+        if (configSetting) {
+          try {
+            const fields = JSON.parse(configSetting.setting_value);
+            setCustomFields(fields);
+            const initialValues: Record<string, string> = {};
+            fields.forEach((field: CustomField) => {
+              initialValues[field.id] = "";
+            });
+            setCustomFieldValues(initialValues);
+          } catch {
+            setCustomFields([]);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching settings:", error);
@@ -179,6 +208,20 @@ const Index = () => {
       return;
     }
 
+    // Validate required custom fields
+    if (customFieldsEnabled) {
+      for (const field of customFields) {
+        if (field.required && !customFieldValues[field.id]?.trim()) {
+          setErrorMessage({
+            title: "필수 항목 누락",
+            description: `${field.label}을(를) 입력해주세요`
+          });
+          setErrorDialogOpen(true);
+          return;
+        }
+      }
+    }
+
     setLoading(true);
     try {
       const lastFour = applyCarNumber.slice(-4);
@@ -188,6 +231,7 @@ const Index = () => {
           car_number: applyCarNumber,
           last_four: lastFour,
           project_id: currentProjectId,
+          custom_fields: customFieldsEnabled ? customFieldValues : {},
         });
 
       if (error) throw error;
@@ -200,6 +244,12 @@ const Index = () => {
       // 차량번호 뒤 4자리만 자동입력
       setCheckCarNumber(lastFour);
       setApplyCarNumber("");
+      setCustomFieldValues(
+        Object.keys(customFieldValues).reduce((acc, key) => {
+          acc[key] = "";
+          return acc;
+        }, {} as Record<string, string>)
+      );
     } catch (error) {
       toast({
         title: "신청 실패",
@@ -322,19 +372,69 @@ const Index = () => {
         </div>
 
         <div className="space-y-3">
-          <Input
-            placeholder="차량번호 (예: 123가4567)"
-            value={applyCarNumber}
-            onChange={(e) => setApplyCarNumber(e.target.value.replace(/\s/g, ""))}
-            maxLength={8}
-            disabled={!currentProjectId || loading}
-            className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal"
-            style={{ 
-              fontSize: '40px', 
-              lineHeight: '80px',
-              padding: '0 1rem'
-            }}
-          />
+          {customFieldsEnabled && customFields.map((field) => (
+            <div key={field.id} className="space-y-2">
+              <Label htmlFor={`custom-${field.id}`} className="text-lg font-semibold">
+                {field.label}
+                {field.required && <span className="text-destructive ml-1">*</span>}
+              </Label>
+              {field.type === "select" ? (
+                <Select
+                  value={customFieldValues[field.id] || ""}
+                  onValueChange={(value) =>
+                    setCustomFieldValues({
+                      ...customFieldValues,
+                      [field.id]: value,
+                    })
+                  }
+                  disabled={!currentProjectId || loading}
+                >
+                  <SelectTrigger id={`custom-${field.id}`} className="h-14 text-lg border-2">
+                    <SelectValue placeholder={field.label} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(field.options || []).map((option, index) => (
+                      <SelectItem key={index} value={option} className="text-lg">
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  id={`custom-${field.id}`}
+                  type={field.type}
+                  placeholder={field.label}
+                  value={customFieldValues[field.id] || ""}
+                  onChange={(e) =>
+                    setCustomFieldValues({
+                      ...customFieldValues,
+                      [field.id]: e.target.value,
+                    })
+                  }
+                  disabled={!currentProjectId || loading}
+                  className="h-14 text-lg border-2"
+                  required={field.required}
+                />
+              )}
+            </div>
+          ))}
+
+          <div className={customFieldsEnabled && customFields.length > 0 ? "pt-4" : ""}>
+            <Input
+              placeholder="차량번호 (예: 123가4567)"
+              value={applyCarNumber}
+              onChange={(e) => setApplyCarNumber(e.target.value.replace(/\s/g, ""))}
+              maxLength={8}
+              disabled={!currentProjectId || loading}
+              className="h-20 text-center border-2 border-black font-bold placeholder:text-2xl placeholder:font-normal"
+              style={{ 
+                fontSize: '40px', 
+                lineHeight: '80px',
+                padding: '0 1rem'
+              }}
+            />
+          </div>
           <Button
             onClick={handleApply}
             disabled={!currentProjectId || loading}
