@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -176,6 +176,13 @@ const AdminLogin = () => {
               </form>
             </TabsContent>
           </Tabs>
+
+          <div className="mt-4 text-center text-sm">
+            마스터 계정이 없으신가요?{" "}
+            <Link to="/admin/signup" className="text-primary hover:underline">
+              회원가입
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
