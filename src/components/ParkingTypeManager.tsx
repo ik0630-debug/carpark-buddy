@@ -74,28 +74,26 @@ function SortableRow({ type, onDelete }: SortableRowProps) {
   return (
     <TableRow ref={setNodeRef} style={style}>
       <TableCell>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <button
             className="cursor-grab active:cursor-grabbing touch-none"
             {...attributes}
             {...listeners}
           >
-            <GripVertical className="h-4 w-4 text-muted-foreground" />
+            <GripVertical className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </button>
-          <span>{type.name}</span>
+          <span className="text-sm sm:text-base">{type.name}</span>
         </div>
       </TableCell>
-      <TableCell>{type.hours}시간</TableCell>
-      <TableCell className="text-sm text-muted-foreground">
-        {new Date(type.created_at).toLocaleDateString("ko-KR")}
-      </TableCell>
-      <TableCell>
+      <TableCell className="text-sm sm:text-base">{type.hours}시간</TableCell>
+      <TableCell className="text-right">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onDelete(type.id)}
+          className="h-8 w-8 p-0"
         >
-          <Trash2 className="h-4 w-4 text-destructive" />
+          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 text-destructive" />
         </Button>
       </TableCell>
     </TableRow>
@@ -325,20 +323,19 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
         </Dialog>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>주차권 이름</TableHead>
-              <TableHead>시간</TableHead>
-              <TableHead>생성일</TableHead>
-              <TableHead className="w-24">관리</TableHead>
+              <TableHead className="text-sm sm:text-base">주차권 이름</TableHead>
+              <TableHead className="text-sm sm:text-base">시간</TableHead>
+              <TableHead className="w-16 sm:w-24 text-right text-sm sm:text-base">관리</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {parkingTypes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={3} className="text-center text-muted-foreground">
                   등록된 주차권이 없습니다
                 </TableCell>
               </TableRow>
