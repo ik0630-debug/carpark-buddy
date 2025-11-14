@@ -212,7 +212,7 @@ export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) =
               <div className="space-y-2">
                 <Label htmlFor="slug">URL 주소</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">/p/</span>
+                  <span className="text-sm text-muted-foreground">/</span>
                   <Input
                     id="slug"
                     placeholder="예: 2024-year-end"
@@ -266,7 +266,7 @@ export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) =
                 <TableRow key={project.id}>
                   <TableCell className="font-medium">{project.name}</TableCell>
                   <TableCell className="font-mono text-sm">
-                    /p/{project.slug}
+                    /{project.slug}
                   </TableCell>
                   <TableCell>{project.description || "-"}</TableCell>
                   <TableCell>
