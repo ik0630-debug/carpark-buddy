@@ -4,6 +4,7 @@ import { ParkingTypeManager } from "@/components/ParkingTypeManager";
 import { PageSettingsManager } from "@/components/PageSettingsManager";
 import { ProjectSelector } from "@/components/ProjectSelector";
 import { UserApprovalManager } from "@/components/UserApprovalManager";
+import { ProfileEditor } from "@/components/ProfileEditor";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -81,11 +82,24 @@ const Admin = () => {
           </Card>
         )}
 
-        {role === "master" && (
-          <Card className="p-6 mb-6">
-            <UserApprovalManager />
-          </Card>
-        )}
+        <Card className="p-6 mb-6">
+          <Tabs defaultValue="profile" className="w-full">
+            <TabsList className={`grid w-full mb-6 ${role === "master" ? "grid-cols-2" : "grid-cols-1"}`}>
+              <TabsTrigger value="profile">내 정보</TabsTrigger>
+              {role === "master" && (
+                <TabsTrigger value="users">사용자 승인</TabsTrigger>
+              )}
+            </TabsList>
+            <TabsContent value="profile">
+              <ProfileEditor />
+            </TabsContent>
+            {role === "master" && (
+              <TabsContent value="users">
+                <UserApprovalManager />
+              </TabsContent>
+            )}
+          </Tabs>
+        </Card>
 
         {currentProjectId && (
           <Card className="p-6">
