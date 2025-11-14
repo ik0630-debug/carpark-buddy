@@ -148,6 +148,13 @@ export const ParkingStatusCheck = ({ projectId }: ParkingStatusCheckProps) => {
             대기중
           </Badge>
         );
+      case "needs_review":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="mr-1 h-4 w-4" />
+            확인필요
+          </Badge>
+        );
       case "rejected":
         return (
           <Badge variant="destructive">
