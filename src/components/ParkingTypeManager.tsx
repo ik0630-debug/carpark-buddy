@@ -55,7 +55,45 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
         .order("hours", { ascending: true });
 
       if (error) throw error;
-      setParkingTypes(data || []);
+      
+      const existingTypes = data || [];
+      setParkingTypes(existingTypes);
+
+      // 기본 주차권 타입이 없으면 자동 생성
+      const defaultTypes = [
+        { name: "차량번호 없음", hours: 0 },
+        { name: "거부", hours: 0 }
+      ];
+
+      const missingTypes = defaultTypes.filter(
+        defaultType => !existingTypes.some(existing => existing.name === defaultType.name)
+      );
+
+      if (missingTypes.length > 0) {
+        const { error: insertError } = await supabase
+          .from("parking_types")
+          .insert(
+            missingTypes.map(type => ({
+              ...type,
+              project_id: projectId
+            }))
+          );
+
+        if (insertError) {
+          console.error("Error creating default parking types:", insertError);
+        } else {
+          // 기본 주차권이 추가되었으면 다시 불러오기
+          const { data: updatedData } = await supabase
+            .from("parking_types")
+            .select("*")
+            .eq("project_id", projectId)
+            .order("hours", { ascending: true });
+          
+          if (updatedData) {
+            setParkingTypes(updatedData);
+          }
+        }
+      }
     } catch (error) {
       console.error("Error fetching parking types:", error);
       toast({
@@ -71,10 +109,20 @@ export const ParkingTypeManager = ({ projectId }: ParkingTypeManagerProps) => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newName.trim() || !newHours || parseInt(newHours) <= 0) {
+    if (!newName.trim() || !newHours) {
       toast({
         title: "입력 오류",
         description: "모든 필드를 올바르게 입력해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const hours = parseInt(newHours);
+    if (isNaN(hours) || hours < 0) {
+      toast({
+        title: "입력 오류",
+        description: "시간은 0 이상의 숫자여야 합니다",
         variant: "destructive",
       });
       return;
