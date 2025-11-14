@@ -50,6 +50,8 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isAssigning, setIsAssigning] = useState(false);
+  const [bulkParkingTypeId, setBulkParkingTypeId] = useState<string>("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -256,6 +258,73 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
     }
   };
 
+  const handleBulkAssign = async () => {
+    if (selectedIds.size === 0) {
+      toast({
+        title: "선택된 항목 없음",
+        description: "배정할 항목을 선택해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!bulkParkingTypeId) {
+      toast({
+        title: "주차권 미선택",
+        description: "배정할 주차권을 선택해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAssigning(true);
+
+    try {
+      const selectedType = parkingTypes.find(type => type.id === bulkParkingTypeId);
+      const isSpecialType = selectedType && (selectedType.name === "번호없음" || selectedType.name === "거부");
+
+      const { error } = await supabase
+        .from("parking_applications")
+        .update({
+          status: isSpecialType ? "needs_review" : "approved",
+          parking_type_id: bulkParkingTypeId,
+          approved_at: isSpecialType ? null : new Date().toISOString(),
+        })
+        .in("id", Array.from(selectedIds));
+
+      if (error) throw error;
+
+      if (isSpecialType) {
+        const message = selectedType.name === "번호없음" 
+          ? "차량 번호가 없습니다." 
+          : "등록 대상 차량이 아닙니다.";
+        toast({
+          title: "확인 필요",
+          description: `${selectedIds.size}개의 신청이 확인 필요 상태로 변경되었습니다. ${message}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "일괄 배정 완료",
+          description: `${selectedIds.size}개의 신청에 주차권이 배정되었습니다`,
+        });
+      }
+
+      setSelectedIds(new Set());
+      setBulkParkingTypeId("");
+      fetchData();
+    } catch (error) {
+      console.error("Error bulk assigning parking types:", error);
+      toast({
+        title: "일괄 배정 실패",
+        description: "배정 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAssigning(false);
+    }
+  };
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(new Set(applications.map(app => app.id)));
@@ -299,30 +368,65 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
 
   return (
     <div className="space-y-4">
-      {/* Bulk Delete Button */}
+      {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-4 bg-muted rounded-lg">
           <span className="text-sm font-medium">
             {selectedIds.size}개 선택됨
           </span>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleBulkDelete}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                삭제 중...
-              </>
-            ) : (
-              <>
-                <Trash2 className="mr-2 h-4 w-4" />
-                선택 항목 삭제
-              </>
-            )}
-          </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1">
+            <Select
+              value={bulkParkingTypeId}
+              onValueChange={setBulkParkingTypeId}
+            >
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="주차권 선택" />
+              </SelectTrigger>
+              <SelectContent>
+                {parkingTypes.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleBulkAssign}
+              disabled={isAssigning || !bulkParkingTypeId}
+            >
+              {isAssigning ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  배정 중...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  일괄 배정
+                </>
+              )}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleBulkDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  삭제 중...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  선택 삭제
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       )}
 
