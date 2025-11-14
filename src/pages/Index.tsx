@@ -148,7 +148,7 @@ const Index = () => {
           </Button>
         </div>
 
-        <div className="text-center mb-8">
+        <div className="text-center mb-8" style={{ marginBottom: '50px' }}>
           <h1 className="text-3xl font-bold text-primary leading-tight">
             M&C Communications
           </h1>
