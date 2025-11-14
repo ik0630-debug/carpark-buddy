@@ -44,18 +44,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (session?.user) {
           // 마스터 권한 체크
-          setTimeout(async () => {
-            const { data } = await supabase
+          setTimeout(() => {
+            supabase
               .from("user_roles")
               .select("role")
               .eq("user_id", session.user.id)
               .eq("role", "master")
-              .maybeSingle();
-            
-            if (data) {
-              setRole("master");
-              localStorage.setItem("userRole", "master");
-            }
+              .maybeSingle()
+              .then(({ data }) => {
+                if (data) {
+                  setRole("master");
+                  localStorage.setItem("userRole", "master");
+                }
+              });
           }, 0);
         } else {
           setRole(null);
