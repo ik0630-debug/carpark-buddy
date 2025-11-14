@@ -30,7 +30,11 @@ interface Project {
   created_at: string;
 }
 
-export const ProjectManager = () => {
+interface ProjectManagerProps {
+  onProjectsChange?: () => void;
+}
+
+export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -52,6 +56,9 @@ export const ProjectManager = () => {
 
       if (error) throw error;
       setProjects(data || []);
+      
+      // 외부 콜백 호출
+      onProjectsChange?.();
     } catch (error) {
       console.error("Error fetching projects:", error);
       toast({
