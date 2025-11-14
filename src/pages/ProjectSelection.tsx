@@ -99,7 +99,7 @@ const ProjectSelection = () => {
         {/* 페이지 제목 */}
         <div className="text-center mb-12">
           <h1
-            className="font-bold text-foreground whitespace-pre-line"
+            className="font-bold text-blue-600 whitespace-pre-line"
             style={{ fontSize: `${fontSize}px`, lineHeight: "1.2" }}
           >
             {titleText}
