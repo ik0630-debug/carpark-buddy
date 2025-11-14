@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle, Clock, Loader2, Trash2 } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Loader2, Trash2, Copy } from "lucide-react";
 
 interface ParkingType {
   id: string;
@@ -326,6 +326,26 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
     }
   };
 
+  const handleCopyCarNumbers = async () => {
+    const selectedApplications = applications.filter(app => selectedIds.has(app.id));
+    const carNumbers = selectedApplications.map(app => app.car_number).join(", ");
+    
+    try {
+      await navigator.clipboard.writeText(carNumbers);
+      toast({
+        title: "복사 완료",
+        description: `${selectedIds.size}개의 차량번호가 클립보드에 복사되었습니다`,
+      });
+    } catch (error) {
+      console.error("Error copying to clipboard:", error);
+      toast({
+        title: "복사 실패",
+        description: "클립보드 복사 중 오류가 발생했습니다",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(new Set(applications.map(app => app.id)));
@@ -408,6 +428,14 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
                   일괄 배정
                 </>
               )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyCarNumbers}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              차량번호 복사
             </Button>
             <Button
               variant="destructive"
