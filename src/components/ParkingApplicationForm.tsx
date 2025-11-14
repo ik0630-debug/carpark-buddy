@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ParkingApplicationFormProps {
   projectId: string;
@@ -13,8 +14,9 @@ interface ParkingApplicationFormProps {
 interface CustomField {
   id: string;
   label: string;
-  type: "text" | "number" | "tel" | "email";
+  type: "text" | "number" | "tel" | "email" | "select";
   required: boolean;
+  options?: string[];
 }
 
 export const ParkingApplicationForm = ({ projectId }: ParkingApplicationFormProps) => {
@@ -143,19 +145,43 @@ export const ParkingApplicationForm = ({ projectId }: ParkingApplicationFormProp
             {field.label}
             {field.required && <span className="text-destructive ml-1">*</span>}
           </Label>
-          <Input
-            id={`custom-${field.id}`}
-            type={field.type}
-            placeholder={field.label}
-            value={customFieldValues[field.id] || ""}
-            onChange={(e) =>
-              setCustomFieldValues({
-                ...customFieldValues,
-                [field.id]: e.target.value,
-              })
-            }
-            required={field.required}
-          />
+          {field.type === "select" ? (
+            <Select
+              value={customFieldValues[field.id] || ""}
+              onValueChange={(value) =>
+                setCustomFieldValues({
+                  ...customFieldValues,
+                  [field.id]: value,
+                })
+              }
+              required={field.required}
+            >
+              <SelectTrigger id={`custom-${field.id}`}>
+                <SelectValue placeholder={field.label} />
+              </SelectTrigger>
+              <SelectContent>
+                {(field.options || []).map((option, index) => (
+                  <SelectItem key={index} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              id={`custom-${field.id}`}
+              type={field.type}
+              placeholder={field.label}
+              value={customFieldValues[field.id] || ""}
+              onChange={(e) =>
+                setCustomFieldValues({
+                  ...customFieldValues,
+                  [field.id]: e.target.value,
+                })
+              }
+              required={field.required}
+            />
+          )}
         </div>
       ))}
 
