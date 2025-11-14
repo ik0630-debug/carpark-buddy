@@ -25,6 +25,7 @@ import {
 interface Project {
   id: string;
   name: string;
+  slug: string;
   description: string | null;
   created_at: string;
 }
@@ -34,6 +35,7 @@ export const ProjectManager = () => {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newSlug, setNewSlug] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const { toast } = useToast();
 
@@ -65,10 +67,21 @@ export const ProjectManager = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newName.trim()) {
+    if (!newName.trim() || !newSlug.trim()) {
       toast({
         title: "입력 오류",
-        description: "프로젝트 이름을 입력해주세요",
+        description: "프로젝트 이름과 URL 주소를 모두 입력해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // slug 검증 (영문자, 숫자, 하이픈만 허용)
+    const slugPattern = /^[a-z0-9-]+$/;
+    if (!slugPattern.test(newSlug)) {
+      toast({
+        title: "입력 오류",
+        description: "URL 주소는 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다",
         variant: "destructive",
       });
       return;
@@ -79,6 +92,7 @@ export const ProjectManager = () => {
         .from("projects")
         .insert({
           name: newName.trim(),
+          slug: newSlug.trim().toLowerCase(),
           description: newDescription.trim() || null,
         })
         .select()
@@ -108,6 +122,7 @@ export const ProjectManager = () => {
       });
 
       setNewName("");
+      setNewSlug("");
       setNewDescription("");
       setOpen(false);
       fetchProjects();
@@ -188,6 +203,22 @@ export const ProjectManager = () => {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="slug">URL 주소</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">/p/</span>
+                  <Input
+                    id="slug"
+                    placeholder="예: 2024-year-end"
+                    value={newSlug}
+                    onChange={(e) => setNewSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    required
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  영문 소문자, 숫자, 하이픈(-)만 사용 가능
+                </p>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="description">설명 (선택)</Label>
                 <Textarea
                   id="description"
@@ -210,6 +241,7 @@ export const ProjectManager = () => {
           <TableHeader>
             <TableRow>
               <TableHead>프로젝트 이름</TableHead>
+              <TableHead>URL 주소</TableHead>
               <TableHead>설명</TableHead>
               <TableHead>생성일</TableHead>
               <TableHead className="w-[100px]">관리</TableHead>
@@ -218,7 +250,7 @@ export const ProjectManager = () => {
           <TableBody>
             {projects.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
                   등록된 프로젝트가 없습니다
                 </TableCell>
               </TableRow>
@@ -226,6 +258,9 @@ export const ProjectManager = () => {
               projects.map((project) => (
                 <TableRow key={project.id}>
                   <TableCell className="font-medium">{project.name}</TableCell>
+                  <TableCell className="font-mono text-sm">
+                    /p/{project.slug}
+                  </TableCell>
                   <TableCell>{project.description || "-"}</TableCell>
                   <TableCell>
                     {new Date(project.created_at).toLocaleDateString("ko-KR")}
