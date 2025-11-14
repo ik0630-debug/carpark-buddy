@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,6 +80,52 @@ export const ParkingStatusCheck = () => {
       setLoading(false);
     }
   };
+
+  // Set up realtime subscription when application is found
+  useEffect(() => {
+    if (!application) return;
+
+    const channel = supabase
+      .channel(`application-${application.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'parking_applications',
+          filter: `id=eq.${application.id}`
+        },
+        async (payload) => {
+          console.log('Application updated:', payload);
+          
+          // Refresh application data
+          const { data } = await supabase
+            .from("parking_applications")
+            .select(`
+              *,
+              parking_types (
+                name,
+                hours
+              )
+            `)
+            .eq("id", application.id)
+            .maybeSingle();
+          
+          if (data) {
+            setApplication(data);
+            toast({
+              title: "상태 업데이트",
+              description: "주차등록 상태가 변경되었습니다",
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [application?.id]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
