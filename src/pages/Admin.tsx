@@ -146,6 +146,14 @@ const Admin = () => {
           </Card>
         )}
 
+        {!currentProjectId && role === "master" && (
+          <Card className="p-8 text-center">
+            <p className="text-muted-foreground mb-4">
+              프로젝트를 선택하거나 새로 생성해주세요
+            </p>
+          </Card>
+        )}
+
         {currentProjectId && (
           <Card className="p-3 sm:p-6">
             <Tabs defaultValue="applications" className="w-full">
