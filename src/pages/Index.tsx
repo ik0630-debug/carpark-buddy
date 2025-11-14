@@ -7,6 +7,12 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
 import { useParams, useSearchParams } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const Index = () => {
   const { toast } = useToast();
@@ -21,6 +27,7 @@ const Index = () => {
   const [checkResult, setCheckResult] = useState<any>(null);
   const [titleText, setTitleText] = useState("M&C Communications\n주차 등록 시스템");
   const [fontSize, setFontSize] = useState("36");
+  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
 
   useEffect(() => {
     // URL에서 프로젝트를 가져오는 로직
@@ -128,13 +135,14 @@ const Index = () => {
             .eq("id", checkResult.id)
             .maybeSingle();
           
-          if (data) {
-            setCheckResult(data);
-            toast({
-              title: "상태 업데이트",
-              description: "주차등록 상태가 변경되었습니다",
-            });
-          }
+        if (data) {
+          setCheckResult(data);
+          setIsResultDialogOpen(true);
+          toast({
+            title: "상태 업데이트",
+            description: "주차등록 상태가 변경되었습니다",
+          });
+        }
         }
       )
       .subscribe();
@@ -231,8 +239,7 @@ const Index = () => {
         
         if (data) {
           setCheckResult(data);
-          // 조회 결과로 스크롤
-          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+          setIsResultDialogOpen(true);
         }
       }, 500);
     } catch (error) {
@@ -295,6 +302,7 @@ const Index = () => {
       }
 
       setCheckResult(data);
+      setIsResultDialogOpen(true);
     } catch (error) {
       toast({
         title: "조회 실패",
@@ -416,53 +424,68 @@ const Index = () => {
           </Button>
         </div>
 
-        {checkResult && (
-          <Card className="mt-6 p-6">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">상태</span>
-                {getStatusBadge(checkResult.status)}
-              </div>
-              
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">차량번호</span>
-                <span className="font-semibold">{checkResult.car_number}</span>
-              </div>
-
-              {checkResult.applicant_name && (
+        <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>주차 등록 조회 결과</DialogTitle>
+            </DialogHeader>
+            {checkResult && (
+              <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">신청자</span>
-                  <span className="font-semibold">{checkResult.applicant_name}</span>
+                  <span className="text-sm text-muted-foreground">상태</span>
+                  {getStatusBadge(checkResult.status)}
                 </div>
-              )}
-
-              {checkResult.status === "approved" && checkResult.parking_types && (
+                
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">주차권</span>
-                  <span className="font-semibold">
-                    {checkResult.parking_types.name} ({checkResult.parking_types.hours}시간)
-                  </span>
+                  <span className="text-sm text-muted-foreground">차량번호</span>
+                  <span className="font-semibold">{checkResult.car_number}</span>
                 </div>
-              )}
 
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">신청일</span>
-                <span className="text-sm">
-                  {new Date(checkResult.created_at).toLocaleString("ko-KR")}
-                </span>
-              </div>
+                {checkResult.applicant_name && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">신청자</span>
+                    <span className="font-semibold">{checkResult.applicant_name}</span>
+                  </div>
+                )}
 
-              {checkResult.approved_at && (
+                {checkResult.status === "approved" && checkResult.parking_types && (
+                  <>
+                    {checkResult.parking_types.name === "번호 없음" ? (
+                      <div className="text-center py-4">
+                        <p className="text-lg font-semibold text-destructive">
+                          입력하신 차량 번호가 없습니다
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm text-muted-foreground">주차권</span>
+                        <span className="font-semibold">
+                          {checkResult.parking_types.name} ({checkResult.parking_types.hours}시간)
+                        </span>
+                      </div>
+                    )}
+                  </>
+                )}
+
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">승인일</span>
+                  <span className="text-sm text-muted-foreground">신청일</span>
                   <span className="text-sm">
-                    {new Date(checkResult.approved_at).toLocaleString("ko-KR")}
+                    {new Date(checkResult.created_at).toLocaleString("ko-KR")}
                   </span>
                 </div>
-              )}
-            </div>
-          </Card>
-        )}
+
+                {checkResult.approved_at && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">승인일</span>
+                    <span className="text-sm">
+                      {new Date(checkResult.approved_at).toLocaleString("ko-KR")}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
