@@ -192,7 +192,7 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-success">승인됨</Badge>;
+        return <Badge className="bg-success">적용완료</Badge>;
       case "pending":
         return <Badge variant="secondary">대기중</Badge>;
       case "rejected":
