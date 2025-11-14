@@ -14,6 +14,9 @@ const AdminSignup = () => {
   const { role, loading } = useAuth();
   const { toast } = useToast();
 
+  const [fullName, setFullName] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [position, setPosition] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -27,6 +30,15 @@ const AdminSignup = () => {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!fullName.trim() || !organization.trim() || !position.trim()) {
+      toast({
+        title: "입력 오류",
+        description: "모든 필드를 입력해주세요",
+        variant: "destructive",
+      });
+      return;
+    }
 
     if (password !== confirmPassword) {
       toast({
@@ -60,9 +72,24 @@ const AdminSignup = () => {
       if (error) throw error;
 
       if (data.user) {
+        // Create profile
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .insert({
+            user_id: data.user.id,
+            full_name: fullName.trim(),
+            organization: organization.trim(),
+            position: position.trim(),
+            email: email.trim(),
+          });
+
+        if (profileError) {
+          console.error("Profile creation error:", profileError);
+        }
+
         toast({
-          title: "회원가입 완료",
-          description: "마스터 계정이 생성되었습니다. 로그인해주세요.",
+          title: "회원가입 신청 완료",
+          description: "관리자의 승인을 기다려주세요.",
         });
         navigate("/admin/login");
       }
@@ -103,6 +130,39 @@ const AdminSignup = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">이름</Label>
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="홍길동"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="organization">소속</Label>
+              <Input
+                id="organization"
+                type="text"
+                value={organization}
+                onChange={(e) => setOrganization(e.target.value)}
+                placeholder="㈜엠앤씨커뮤니케이션즈"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="position">직함</Label>
+              <Input
+                id="position"
+                type="text"
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                placeholder="대리"
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">이메일</Label>
               <Input

@@ -100,10 +100,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) throw error;
 
-      // 마스터 권한 체크
+      // 마스터 권한 및 승인 상태 체크
       const { data: roleData } = await supabase
         .from("user_roles")
-        .select("role")
+        .select("role, approved")
         .eq("user_id", data.user.id)
         .eq("role", "master")
         .maybeSingle();
@@ -111,6 +111,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!roleData) {
         await supabase.auth.signOut();
         throw new Error("관리자 권한이 없습니다");
+      }
+
+      if (!roleData.approved) {
+        await supabase.auth.signOut();
+        throw new Error("아직 승인되지 않은 계정입니다. 관리자의 승인을 기다려주세요.");
       }
 
       return { error: null };

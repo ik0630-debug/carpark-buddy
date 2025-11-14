@@ -3,6 +3,7 @@ import { AdminApplicationList } from "@/components/AdminApplicationList";
 import { ParkingTypeManager } from "@/components/ParkingTypeManager";
 import { PageSettingsManager } from "@/components/PageSettingsManager";
 import { ProjectSelector } from "@/components/ProjectSelector";
+import { UserApprovalManager } from "@/components/UserApprovalManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,12 @@ const Admin = () => {
         {role === "master" && (
           <Card className="p-6 mb-6">
             <ProjectSelector value={currentProjectId} onChange={setCurrentProjectId} />
+          </Card>
+        )}
+
+        {role === "master" && (
+          <Card className="p-6 mb-6">
+            <UserApprovalManager />
           </Card>
         )}
 
