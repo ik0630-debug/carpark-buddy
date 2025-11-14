@@ -178,7 +178,7 @@ const Index = () => {
             value={checkCarNumber}
             onChange={(e) => setCheckCarNumber(e.target.value.replace(/\D/g, ""))}
             maxLength={4}
-            className="h-20 text-5xl text-center border-2 border-black mt-8"
+            className="h-20 text-5xl text-center border-2 border-black mt-16"
           />
           <Button
             onClick={handleCheck}
