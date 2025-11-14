@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { CheckCircle, XCircle, Clock, Loader2, Trash2, Copy } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Loader2, Trash2, Copy, Download } from "lucide-react";
 
 interface ParkingType {
   id: string;
@@ -346,6 +346,66 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
     }
   };
 
+  const handleExport = () => {
+    const selectedApplications = applications.filter(app => selectedIds.has(app.id));
+    
+    // CSV 헤더 생성
+    let csvContent = "차량번호,상태,주차권,신청일";
+    
+    // custom_fields가 있는 경우 동적으로 헤더 추가
+    const allCustomFieldKeys = new Set<string>();
+    selectedApplications.forEach(app => {
+      if (app.custom_fields && typeof app.custom_fields === 'object') {
+        Object.keys(app.custom_fields).forEach(key => allCustomFieldKeys.add(key));
+      }
+    });
+    
+    if (allCustomFieldKeys.size > 0) {
+      csvContent += "," + Array.from(allCustomFieldKeys).join(",");
+    }
+    
+    csvContent += "\n";
+    
+    // 데이터 행 추가
+    selectedApplications.forEach(app => {
+      const status = app.status === "approved" ? "적용완료" : 
+                    app.status === "pending" ? "대기중" : 
+                    app.status === "needs_review" ? "확인필요" : "거부됨";
+      const parkingType = app.parking_types ? `${app.parking_types.name} (${app.parking_types.hours}시간)` : "-";
+      const createdAt = new Date(app.created_at).toLocaleString("ko-KR");
+      
+      let row = `${app.car_number},${status},${parkingType},${createdAt}`;
+      
+      // custom_fields 추가
+      if (allCustomFieldKeys.size > 0) {
+        const customFieldValues = Array.from(allCustomFieldKeys).map(key => {
+          const value = app.custom_fields && typeof app.custom_fields === 'object' 
+            ? (app.custom_fields as Record<string, string>)[key] || "" 
+            : "";
+          return value;
+        });
+        row += "," + customFieldValues.join(",");
+      }
+      
+      csvContent += row + "\n";
+    });
+    
+    // BOM 추가 (엑셀에서 한글 깨짐 방지)
+    const bom = "\uFEFF";
+    const blob = new Blob([bom + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `주차신청_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "내보내기 완료",
+      description: `${selectedIds.size}개의 신청이 CSV 파일로 다운로드되었습니다`,
+    });
+  };
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(new Set(applications.map(app => app.id)));
@@ -428,6 +488,14 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
                   일괄 배정
                 </>
               )}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              내보내기
             </Button>
             <Button
               variant="outline"
