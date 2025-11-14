@@ -235,7 +235,102 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
 
   return (
     <div className="space-y-4">
-      <div className="rounded-md border">
+      {/* Mobile View - Cards */}
+      <div className="md:hidden space-y-3">
+        {applications.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">
+            등록된 신청이 없습니다
+          </div>
+        ) : (
+          applications.map((app) => (
+            <div key={app.id} className="border rounded-lg p-4 space-y-3">
+              {/* 첫째 줄: 차량번호, 상태 */}
+              <div className="flex items-center justify-between">
+                <span className="font-mono font-semibold">{app.car_number}</span>
+                {getStatusBadge(app.status)}
+              </div>
+              
+              {/* 둘째 줄: 주차권, 수정/삭제 */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex-1">
+                  {app.status === "pending" || app.status === "needs_review" || editingId === app.id ? (
+                    <div className="flex items-center gap-2">
+                      <Select
+                        onValueChange={(value) => handleApprove(app.id, value)}
+                        disabled={processingId === app.id}
+                        defaultValue={app.parking_type_id || undefined}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="선택" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {parkingTypes.map((type) => (
+                            <SelectItem key={type.id} value={type.id}>
+                              {type.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {editingId === app.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingId(null)}
+                        >
+                          취소
+                        </Button>
+                      )}
+                    </div>
+                  ) : app.parking_types ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">
+                        {app.parking_types.name} ({app.parking_types.hours}시간)
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingId(app.id)}
+                        disabled={processingId === app.id}
+                      >
+                        수정
+                      </Button>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </div>
+                
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(app.id)}
+                  disabled={processingId === app.id}
+                >
+                  {processingId === app.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    "삭제"
+                  )}
+                </Button>
+              </div>
+
+              {/* 신청일 */}
+              <div className="text-xs text-muted-foreground">
+                {new Date(app.created_at).toLocaleString("ko-KR", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop View - Table */}
+      <div className="hidden md:block rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
