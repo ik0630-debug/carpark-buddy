@@ -407,6 +407,20 @@ const Index = () => {
                   <span className="text-sm text-muted-foreground">상태</span>
                   {getStatusBadge(checkResult.status)}
                 </div>
+
+                {/* 동적 필드 표시 */}
+                {checkResult.custom_fields && typeof checkResult.custom_fields === 'object' && Object.keys(checkResult.custom_fields).length > 0 && (
+                  <div className="border-t pt-4 space-y-2">
+                    {Object.entries(checkResult.custom_fields as Record<string, string>).map(([key, value]) => (
+                      value && (
+                        <div key={key} className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground capitalize">{key}</span>
+                          <span className="font-semibold">{value}</span>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                )}
                 
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">차량번호</span>

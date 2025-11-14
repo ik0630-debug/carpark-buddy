@@ -36,6 +36,7 @@ interface Application {
   created_at: string;
   approved_at: string | null;
   parking_types: ParkingType | null;
+  custom_fields: any;
 }
 
 interface AdminApplicationListProps {
@@ -450,6 +451,20 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
                 </div>
                 {getStatusBadge(app.status)}
               </div>
+
+              {/* 동적 필드 표시 */}
+              {app.custom_fields && typeof app.custom_fields === 'object' && Object.keys(app.custom_fields).length > 0 && (
+                <div className="text-sm space-y-1 pl-8 border-l-2 border-muted">
+                  {Object.entries(app.custom_fields as Record<string, string>).map(([key, value]) => (
+                    value && (
+                      <div key={key} className="flex justify-between">
+                        <span className="text-muted-foreground">{key}:</span>
+                        <span>{value}</span>
+                      </div>
+                    )
+                  ))}
+                </div>
+              )}
               
               {/* 둘째 줄: 주차권, 수정/삭제 */}
               <div className="flex items-center justify-between gap-2">
