@@ -41,6 +41,7 @@ export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) =
   const [newName, setNewName] = useState("");
   const [newSlug, setNewSlug] = useState("");
   const [newDescription, setNewDescription] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -101,6 +102,7 @@ export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) =
           name: newName.trim(),
           slug: newSlug.trim().toLowerCase(),
           description: newDescription.trim() || null,
+          password: newPassword.trim() || null,
         })
         .select()
         .single();
@@ -131,6 +133,7 @@ export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) =
       setNewName("");
       setNewSlug("");
       setNewDescription("");
+      setNewPassword("");
       setOpen(false);
       fetchProjects();
     } catch (error) {
@@ -234,6 +237,19 @@ export const ProjectManager = ({ onProjectsChange }: ProjectManagerProps = {}) =
                   onChange={(e) => setNewDescription(e.target.value)}
                   rows={3}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">프로젝트 비밀번호 (선택)</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="현장 관리자용 비밀번호"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  현장 관리자가 로그인할 때 사용할 비밀번호입니다
+                </p>
               </div>
               <Button type="submit" className="w-full">
                 추가
