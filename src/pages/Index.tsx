@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -17,8 +17,7 @@ import {
 const Index = () => {
   const { toast } = useToast();
   const { slug } = useParams();
-  const [searchParams] = useSearchParams();
-  const projectIdFromUrl = searchParams.get("project");
+  const navigate = useNavigate();
   
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
   const [applyCarNumber, setApplyCarNumber] = useState("");
@@ -32,56 +31,36 @@ const Index = () => {
   const [errorMessage, setErrorMessage] = useState({ title: "", description: "" });
 
   useEffect(() => {
-    // URL에서 프로젝트를 가져오는 로직
+    // slug로 프로젝트 조회
     const initializeProject = async () => {
-      // 1. slug가 있으면 slug로 프로젝트 조회
-      if (slug) {
-        const { data } = await supabase
-          .from("projects")
-          .select("id")
-          .eq("slug", slug)
-          .maybeSingle();
-        
-        if (data) {
-          setCurrentProjectId(data.id);
-          localStorage.setItem("currentProjectId", data.id);
-        } else {
-          toast({
-            title: "프로젝트를 찾을 수 없습니다",
-            description: "URL을 확인해주세요",
-            variant: "destructive",
-          });
-        }
+      if (!slug) {
+        // slug가 없으면 프로젝트 선택 페이지로 리다이렉트
+        navigate("/");
+        return;
       }
-      // 2. project 파라미터가 있으면 ID로 조회
-      else if (projectIdFromUrl) {
-        setCurrentProjectId(projectIdFromUrl);
-        localStorage.setItem("currentProjectId", projectIdFromUrl);
-      }
-      // 3. 저장된 프로젝트 ID가 있으면 사용
-      else {
-        const savedProjectId = localStorage.getItem("currentProjectId");
-        if (savedProjectId) {
-          setCurrentProjectId(savedProjectId);
-        } else {
-          // 4. 첫 번째 프로젝트를 자동 선택
-          const { data } = await supabase
-            .from("projects")
-            .select("id")
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          
-          if (data) {
-            setCurrentProjectId(data.id);
-            localStorage.setItem("currentProjectId", data.id);
-          }
-        }
+
+      const { data } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("slug", slug)
+        .maybeSingle();
+      
+      if (data) {
+        setCurrentProjectId(data.id);
+        localStorage.setItem("currentProjectId", data.id);
+      } else {
+        toast({
+          title: "프로젝트를 찾을 수 없습니다",
+          description: "URL을 확인해주세요",
+          variant: "destructive",
+        });
+        // 프로젝트를 찾을 수 없으면 선택 페이지로 리다이렉트
+        navigate("/");
       }
     };
 
     initializeProject();
-  }, [slug, projectIdFromUrl]);
+  }, [slug, navigate]);
 
   useEffect(() => {
     if (currentProjectId) {
