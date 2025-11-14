@@ -83,7 +83,23 @@ export const ProjectSelector = ({ value, onChange }: ProjectSelectorProps) => {
   if (projects.length === 0) {
     return (
       <div className="space-y-2">
-        <Label>프로젝트</Label>
+        <div className="flex items-center justify-between">
+          <Label>프로젝트</Label>
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+              <Button variant="default" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                프로젝트 생성
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>프로젝트 관리</DialogTitle>
+              </DialogHeader>
+              <ProjectManager onProjectsChange={handleProjectsChange} />
+            </DialogContent>
+          </Dialog>
+        </div>
         <p className="text-sm text-muted-foreground">
           프로젝트를 먼저 생성해주세요
         </p>
