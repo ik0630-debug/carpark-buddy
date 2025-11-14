@@ -50,26 +50,33 @@ export const UserApprovalManager = () => {
 
   const fetchPendingUsers = async () => {
     try {
+      // Fetch user roles
       const { data: rolesData, error: rolesError } = await supabase
         .from("user_roles")
-        .select(`
-          *,
-          profiles:user_id (
-            full_name,
-            organization,
-            position,
-            email
-          )
-        `)
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (rolesError) throw rolesError;
 
-      // Transform data to match interface
-      const users = rolesData?.map((role: any) => ({
+      if (!rolesData || rolesData.length === 0) {
+        setPendingUsers([]);
+        return;
+      }
+
+      // Fetch profiles for these users
+      const userIds = rolesData.map(role => role.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*")
+        .in("user_id", userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Join data on client side
+      const users = rolesData.map(role => ({
         ...role,
-        profile: Array.isArray(role.profiles) ? role.profiles[0] : role.profiles
-      })) || [];
+        profile: profilesData?.find(p => p.user_id === role.user_id) || null
+      }));
 
       setPendingUsers(users);
     } catch (error) {
