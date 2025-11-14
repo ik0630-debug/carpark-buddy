@@ -28,6 +28,8 @@ const Index = () => {
   const [titleText, setTitleText] = useState("M&C Communications\n주차 등록 시스템");
   const [fontSize, setFontSize] = useState("36");
   const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState({ title: "", description: "" });
 
   useEffect(() => {
     // URL에서 프로젝트를 가져오는 로직
@@ -181,20 +183,20 @@ const Index = () => {
 
   const handleApply = async () => {
     if (!currentProjectId) {
-      toast({
+      setErrorMessage({
         title: "프로젝트 없음",
-        description: "관리자에게 문의하세요",
-        variant: "destructive",
+        description: "관리자에게 문의하세요"
       });
+      setErrorDialogOpen(true);
       return;
     }
 
     if (!validateCarNumber(applyCarNumber)) {
-      toast({
+      setErrorMessage({
         title: "잘못된 차량번호",
-        description: "형식: 00가0000 또는 000가0000",
-        variant: "destructive",
+        description: "형식: 00가0000 또는 000가0000"
       });
+      setErrorDialogOpen(true);
       return;
     }
 
@@ -255,20 +257,20 @@ const Index = () => {
 
   const handleCheck = async () => {
     if (!currentProjectId) {
-      toast({
+      setErrorMessage({
         title: "프로젝트 없음",
-        description: "관리자에게 문의하세요",
-        variant: "destructive",
+        description: "관리자에게 문의하세요"
       });
+      setErrorDialogOpen(true);
       return;
     }
 
     if (checkCarNumber.length !== 4 || !/^\d{4}$/.test(checkCarNumber)) {
-      toast({
+      setErrorMessage({
         title: "잘못된 형식",
-        description: "뒤 4자리 숫자를 입력해주세요",
-        variant: "destructive",
+        description: "뒤 4자리 숫자를 입력해주세요"
       });
+      setErrorDialogOpen(true);
       return;
     }
 
@@ -423,6 +425,20 @@ const Index = () => {
             )}
           </Button>
         </div>
+
+        <Dialog open={errorDialogOpen} onOpenChange={setErrorDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{errorMessage.title}</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-center text-lg">{errorMessage.description}</p>
+            </div>
+            <Button onClick={() => setErrorDialogOpen(false)} className="w-full">
+              확인
+            </Button>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={isResultDialogOpen} onOpenChange={setIsResultDialogOpen}>
           <DialogContent className="sm:max-w-md">
