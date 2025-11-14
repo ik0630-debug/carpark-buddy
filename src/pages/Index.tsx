@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -15,6 +15,51 @@ const Index = () => {
   const [checkCarNumber, setCheckCarNumber] = useState("");
   const [loading, setLoading] = useState(false);
   const [checkResult, setCheckResult] = useState<any>(null);
+  const [titleText, setTitleText] = useState("M&C Communications\n주차 등록 시스템");
+  const [fontSize, setFontSize] = useState("36");
+
+  useEffect(() => {
+    fetchSettings();
+
+    // Real-time subscription for settings
+    const channel = supabase
+      .channel('page-settings')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'page_settings'
+        },
+        () => {
+          fetchSettings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data } = await supabase
+        .from("page_settings")
+        .select("*")
+        .in("setting_key", ["title_text", "title_font_size"]);
+
+      if (data) {
+        const titleSetting = data.find((s) => s.setting_key === "title_text");
+        const fontSizeSetting = data.find((s) => s.setting_key === "title_font_size");
+
+        if (titleSetting) setTitleText(titleSetting.setting_value);
+        if (fontSizeSetting) setFontSize(fontSizeSetting.setting_value);
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+    }
+  };
 
   const validateCarNumber = (number: string) => {
     const pattern = /^\d{2,3}[가-힣]\d{4}$/;
@@ -149,12 +194,12 @@ const Index = () => {
         </div>
 
         <div className="text-center mb-8" style={{ marginBottom: '50px' }}>
-          <h1 className="text-3xl font-bold text-primary leading-tight">
-            M&C Communications
-          </h1>
-          <h2 className="text-2xl font-bold text-primary mt-2">
-            주차 등록 시스템
-          </h2>
+          <div 
+            className="font-bold text-primary leading-tight whitespace-pre-line"
+            style={{ fontSize: `${fontSize}px` }}
+          >
+            {titleText}
+          </div>
         </div>
 
         <div className="space-y-3">
