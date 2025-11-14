@@ -452,19 +452,12 @@ const Index = () => {
                   {getStatusBadge(checkResult.status)}
                 </div>
                 
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">차량번호</span>
-                  <span className="font-semibold">{checkResult.car_number}</span>
-                </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">차량번호</span>
+                <span className="font-semibold">{checkResult.car_number}</span>
+              </div>
 
-                {checkResult.applicant_name && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">신청자</span>
-                    <span className="font-semibold">{checkResult.applicant_name}</span>
-                  </div>
-                )}
-
-                {checkResult.status === "approved" && checkResult.parking_types && (
+              {checkResult.status === "approved" && checkResult.parking_types && (
                   <>
                     {checkResult.parking_types.name === "번호 없음" ? (
                       <div className="text-center py-4">

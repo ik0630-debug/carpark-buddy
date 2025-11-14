@@ -34,8 +34,6 @@ interface Application {
   parking_type_id: string | null;
   created_at: string;
   approved_at: string | null;
-  applicant_name: string | null;
-  applicant_phone: string | null;
   parking_types: ParkingType | null;
 }
 
@@ -216,8 +214,6 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>신청자</TableHead>
-              <TableHead>연락처</TableHead>
               <TableHead>차량번호</TableHead>
               <TableHead>상태</TableHead>
               <TableHead>주차권</TableHead>
@@ -228,15 +224,13 @@ export const AdminApplicationList = ({ projectId }: AdminApplicationListProps) =
           <TableBody>
             {applications.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={5} className="text-center text-muted-foreground">
                   등록된 신청이 없습니다
                 </TableCell>
               </TableRow>
             ) : (
               applications.map((app) => (
                 <TableRow key={app.id}>
-                  <TableCell>{app.applicant_name || "-"}</TableCell>
-                  <TableCell>{app.applicant_phone || "-"}</TableCell>
                   <TableCell className="font-mono">{app.car_number}</TableCell>
                   <TableCell>{getStatusBadge(app.status)}</TableCell>
                   <TableCell>
