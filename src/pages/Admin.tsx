@@ -124,23 +124,19 @@ const Admin = () => {
         {currentProjectId && (
           <Card className="p-3 sm:p-6">
             <Tabs defaultValue="applications" className="w-full">
-              <TabsList className={`w-full mb-4 sm:mb-6 ${role === "master" ? "grid grid-cols-1 sm:grid-cols-4 gap-1" : "grid grid-cols-1 sm:grid-cols-2 gap-1"}`}>
+              <TabsList className="w-full mb-4 sm:mb-6 grid grid-cols-1 sm:grid-cols-4 gap-1">
                 <TabsTrigger value="applications" className="text-sm sm:text-base py-2">
                   신청 관리
                 </TabsTrigger>
                 <TabsTrigger value="parking-types" className="text-sm sm:text-base py-2">
                   주차권 관리
                 </TabsTrigger>
-                {role === "master" && (
-                  <>
-                    <TabsTrigger value="qr-codes" className="text-sm sm:text-base py-2">
-                      QR코드 관리
-                    </TabsTrigger>
-                    <TabsTrigger value="settings" className="text-sm sm:text-base py-2">
-                      페이지 설정
-                    </TabsTrigger>
-                  </>
-                )}
+                <TabsTrigger value="qr-codes" className="text-sm sm:text-base py-2">
+                  QR코드 관리
+                </TabsTrigger>
+                <TabsTrigger value="settings" className="text-sm sm:text-base py-2">
+                  페이지 설정
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="applications">
                 <AdminApplicationList projectId={currentProjectId} />
@@ -148,16 +144,12 @@ const Admin = () => {
               <TabsContent value="parking-types">
                 <ParkingTypeManager projectId={currentProjectId} />
               </TabsContent>
-              {role === "master" && (
-                <>
-                  <TabsContent value="qr-codes">
-                    <QRCodeManager projectId={currentProjectId} />
-                  </TabsContent>
-                  <TabsContent value="settings">
-                    <PageSettingsManager projectId={currentProjectId} />
-                  </TabsContent>
-                </>
-              )}
+              <TabsContent value="qr-codes">
+                <QRCodeManager projectId={currentProjectId} />
+              </TabsContent>
+              <TabsContent value="settings">
+                <PageSettingsManager projectId={currentProjectId} />
+              </TabsContent>
             </Tabs>
           </Card>
         )}
