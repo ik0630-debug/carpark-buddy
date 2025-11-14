@@ -48,6 +48,27 @@ export const AdminApplicationList = () => {
 
   useEffect(() => {
     fetchData();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('admin-applications')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'parking_applications'
+        },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          fetchData(); // Refresh data on any change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchData = async () => {
