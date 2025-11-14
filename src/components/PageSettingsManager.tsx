@@ -79,39 +79,55 @@ export const PageSettingsManager = ({ projectId }: PageSettingsManagerProps) => 
     setSaving(true);
 
     try {
-      // Update title text
+      // Upsert title text
       const { error: titleError } = await supabase
         .from("page_settings")
-        .update({ setting_value: titleText })
-        .eq("project_id", projectId)
-        .eq("setting_key", "title_text");
+        .upsert({ 
+          project_id: projectId,
+          setting_key: "title_text",
+          setting_value: titleText 
+        }, {
+          onConflict: "project_id,setting_key"
+        });
 
       if (titleError) throw titleError;
 
-      // Update font size
+      // Upsert font size
       const { error: fontError } = await supabase
         .from("page_settings")
-        .update({ setting_value: fontSize })
-        .eq("project_id", projectId)
-        .eq("setting_key", "title_font_size");
+        .upsert({ 
+          project_id: projectId,
+          setting_key: "title_font_size",
+          setting_value: fontSize 
+        }, {
+          onConflict: "project_id,setting_key"
+        });
 
       if (fontError) throw fontError;
 
-      // Update custom fields enabled
+      // Upsert custom fields enabled
       const { error: customFieldsEnabledError } = await supabase
         .from("page_settings")
-        .update({ setting_value: customFieldsEnabled.toString() })
-        .eq("project_id", projectId)
-        .eq("setting_key", "custom_fields_enabled");
+        .upsert({ 
+          project_id: projectId,
+          setting_key: "custom_fields_enabled",
+          setting_value: customFieldsEnabled.toString() 
+        }, {
+          onConflict: "project_id,setting_key"
+        });
 
       if (customFieldsEnabledError) throw customFieldsEnabledError;
 
-      // Update custom fields config
+      // Upsert custom fields config
       const { error: customFieldsConfigError } = await supabase
         .from("page_settings")
-        .update({ setting_value: JSON.stringify(customFields) })
-        .eq("project_id", projectId)
-        .eq("setting_key", "custom_fields_config");
+        .upsert({ 
+          project_id: projectId,
+          setting_key: "custom_fields_config",
+          setting_value: JSON.stringify(customFields) 
+        }, {
+          onConflict: "project_id,setting_key"
+        });
 
       if (customFieldsConfigError) throw customFieldsConfigError;
 
